@@ -14,11 +14,7 @@ elas nao foram utilizas, portanto, nao e levado em consideracao o fluxo de
 potencia
 '''
 
-
-import funcoes67 as f67
-import faltas as flt
-
-
+from src.tcc.calculos import funcoes67 as f67, faltas as flt
 
 """
 - Os valores de tensao e corrente podem ser em valores primarios ou secundarios

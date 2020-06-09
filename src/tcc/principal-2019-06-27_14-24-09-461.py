@@ -14,11 +14,7 @@ elas nao foram utilizas, portanto, nao e levado em consideracao o fluxo de
 potencia
 """
 
-
-import funcoes67 as f67
-import faltas as flt
-
-
+from src.tcc.calculos import funcoes67 as f67, faltas as flt
 
 """
 - Os valores de tensao e corrente podem ser em valores primarios ou secundarios
@@ -50,11 +46,11 @@ Zr_0   = 0.4 + 0.8j
 # Comprimento da linha em km
 # Z da linha como R+jX em ohm/km
 # Y da linha como 0+jB em   S/km
-leng = 400.0
+leng = 200.0
 Zl_1 = 0.01+0.02j
 Zl_0 = 0.02+0.04j
-Yl_1 = 0.00+0.0000002j
-Yl_0 = 0.00+0.0000001j
+Yl_1 = 0.00+0.01j
+Yl_0 = 0.00+0.02j
 
 # Entrada de dados da falta
 # tipo de falta (1-mono(default), 2-bi, 3-biterra, 4-tri, 5-triterra)
@@ -66,7 +62,7 @@ rele = 1
 # Fim da entrada de dados
 
 
-# Ini­cio do programa
+# Ini�cio do programa
 
 # Porcentagem que cada ponto de falta e aplicado 0.01 = 1%
 delta_m = 0.01
@@ -119,7 +115,7 @@ for i in range(0, int(100/(100*delta_m))+1, 1):
     VI_120_rele_r.append(R_120)
     dist_falta.append(m*leng)
 
-# Atualiza a posição 100% da linha e barra reversa no vetor distancia da falta
+# Atualiza a posi��o 100% da linha e barra reversa no vetor distancia da falta
 dist_falta.append((1+delta_m)*leng)
 
 # Falta reversa ao rele R
@@ -134,7 +130,7 @@ if rele == 2: # Rele GE-D90Plus
     f67.GE_D90Plus(VI_120_rele_s, VI_abc_rele_s, VI_120_rele_r, VI_abc_rele_r, dist_falta)
 elif rele == 3: # Rele Siemens-7SJ62
     f67.Siemens_7SJ62(VI_120_rele_s, VI_abc_rele_s, VI_120_rele_r, VI_abc_rele_r, dist_falta)
-else: # Relé SEL-311L
+else: # Rel� SEL-311L
     f67.rele_SEL_67(VI_120_rele_s, VI_120_rele_r, Zl_1, Zl_0, dist_falta)
 
 
