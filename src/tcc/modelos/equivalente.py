@@ -16,6 +16,7 @@ class Equivalente:
         self.i_ang = 0.0
         self.z_1 = z_1
         self.z_0 = z_0
+        self.monta_matrizes()
 
     def monta_matrizes(self):
         self.v_abc = flt.valor_abc(self.v_mag / 3 ** (1 / 2), self.v_ang)

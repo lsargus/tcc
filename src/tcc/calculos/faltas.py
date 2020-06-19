@@ -10,6 +10,7 @@ Foi separado o arquivo de aplicacao de faltas do de calculos das funcoes 67
 # Importacao de modulos
 import numpy as np
 from src.tcc.enums.tpFalta import TpFalta
+from src.tcc.util.matriz import Matriz
 
 '''
 Matrizes para transformacao de sequencia de fase para componentes de sequencia
@@ -20,26 +21,26 @@ alpha = complex(np.cos(120 * np.pi / 180), np.sin(120 * np.pi / 180))
 
 # Matriz H - converte de componententes de fase para componentes simetricas
 # Caso trifasico - H3x3
-H3x3 = np.matrix([[1, alpha, alpha ** 2],
-                  [1, alpha ** 2, alpha],
-                  [1, 1, 1]])
+H3x3 = Matriz([[1, alpha, alpha ** 2],
+               [1, alpha ** 2, alpha],
+               [1, 1, 1]])
 H3x3 = H3x3 / 3
 
 # Matriz T - converte de componentes de sequencia para componentes de fase
-T3x3 = H3x3.getI()
+T3x3 = H3x3.inv()
 
 # Matrizes base - 3x3
-Zeros3 = np.matrix(np.zeros((3, 3)))
-I3x3 = np.matrix(np.eye(3))
+Zeros3 = Matriz(np.zeros((3, 3)))
+I3x3 = Matriz(np.eye(3))
 
 # Matrizes para quadripolos trifasicos - 6x6
-H6x6 = np.vstack((np.hstack((H3x3, Zeros3)),
-                  np.hstack((Zeros3, H3x3))))
-T6x6 = H6x6.getI()
+H6x6 = Matriz.vstack((Matriz.hstack((H3x3, Zeros3)),
+                      Matriz.hstack((Zeros3, H3x3))))
+T6x6 = H6x6.inv()
 
 # Matriz para corrigir os angulos da corrente do rele R - 6x6
-I_ang_correcao = np.vstack((np.hstack((I3x3, Zeros3)),
-                            np.hstack((Zeros3, -1 * I3x3))))
+I_ang_correcao = Matriz.vstack((Matriz.hstack((I3x3, Zeros3)),
+                                Matriz.hstack((Zeros3, -1 * I3x3))))
 
 """
 Funcao definida para receber quadripolo em sequencia de fases e converte-la em
@@ -68,9 +69,9 @@ def valor_abc(mag, ang):
     valor_a = complex(mag * np.cos((ang + 0) * np.pi / 180), mag * np.sin((ang + 0) * np.pi / 180))
     valor_b = complex(mag * np.cos((ang - 120) * np.pi / 180), mag * np.sin((ang - 120) * np.pi / 180))
     valor_c = complex(mag * np.cos((ang + 120) * np.pi / 180), mag * np.sin((ang + 120) * np.pi / 180))
-    valor_abc = np.matrix([[valor_a],
-                           [valor_b],
-                           [valor_c]])
+    valor_abc = Matriz([[valor_a],
+                        [valor_b],
+                        [valor_c]])
     return valor_abc
 
 
@@ -82,11 +83,11 @@ Gera uma matriz de impedancia trifasica 6x6 - quadripolos
 
 
 def z_120_6x6(z_1, z_0):
-    Z_120 = np.matrix([[z_1, 0.00000, 0.00000],
-                       [0.00000, z_1, 0.00000],
-                       [0.00000, 0.00000, z_0]])
-    z_120_6x6 = np.vstack((np.hstack((I3x3, Z_120)),
-                           np.hstack((Zeros3, I3x3))))
+    Z_120 = Matriz([[z_1, 0.00000, 0.00000],
+                    [0.00000, z_1, 0.00000],
+                    [0.00000, 0.00000, z_0]])
+    z_120_6x6 = Matriz.vstack((Matriz.hstack((I3x3, Z_120)),
+                               Matriz.hstack((Zeros3, I3x3))))
     return z_120_6x6
 
 
@@ -114,13 +115,13 @@ def zLine_120_6x6(z_1, y_1, z_0, y_0, leng):
     C_0 = np.sinh(gama_0 * leng) / zc_0
     D_0 = np.cosh(gama_0 * leng)
 
-    A_120 = np.matrix([[A_1, 0, 0], [0, A_1, 0], [0, 0, A_0]])
-    B_120 = np.matrix([[B_1, 0, 0], [0, B_1, 0], [0, 0, B_0]])
-    C_120 = np.matrix([[C_1, 0, 0], [0, C_1, 0], [0, 0, C_0]])
-    D_120 = np.matrix([[D_1, 0, 0], [0, D_1, 0], [0, 0, D_0]])
+    A_120 = Matriz([[A_1, 0, 0], [0, A_1, 0], [0, 0, A_0]])
+    B_120 = Matriz([[B_1, 0, 0], [0, B_1, 0], [0, 0, B_0]])
+    C_120 = Matriz([[C_1, 0, 0], [0, C_1, 0], [0, 0, C_0]])
+    D_120 = Matriz([[D_1, 0, 0], [0, D_1, 0], [0, 0, D_0]])
 
-    zl_120_6x6 = np.vstack((np.hstack((A_120, B_120)),
-                            np.hstack((C_120, D_120))))
+    zl_120_6x6 = Matriz.vstack((Matriz.hstack((A_120, B_120)),
+                                Matriz.hstack((C_120, D_120))))
     return zl_120_6x6
 
 
@@ -133,32 +134,32 @@ def falta(tipo, rf):
     """tipo de falta (1-mono, 2-bi, 3-biterra, 4-tri, 5-triterra, default: mono)"""
     if tipo == TpFalta.BI:
         # matriz de falta bifasica
-        zF = np.matrix([[1.0 / rf, -1.0 / rf, 0.00000],
-                        [-1.0 / rf, 1.0 / rf, 0.00000],
-                        [0.00000, 0.00000, 0.00000]])
+        zF = Matriz([[1.0 / rf, -1.0 / rf, 0.00000],
+                     [-1.0 / rf, 1.0 / rf, 0.00000],
+                     [0.00000, 0.00000, 0.00000]])
     elif tipo == TpFalta.BI_TERRA:
         # matriz de falta bifasica  terra
-        zF = np.matrix([[2.0 / rf, -1.0 / rf, 0.00000],
-                        [-1.0 / rf, 2.0 / rf, 0.00000],
-                        [0.00000, 0.00000, 0.00000]])
+        zF = Matriz([[2.0 / rf, -1.0 / rf, 0.00000],
+                     [-1.0 / rf, 2.0 / rf, 0.00000],
+                     [0.00000, 0.00000, 0.00000]])
     elif tipo == TpFalta.TRI:
         # matriz de falta trifasica
-        zF = np.matrix([[1.0 / rf, 0.00000, 0.00000],
-                        [0.00000, 1.0 / rf, 0.00000],
-                        [0.00000, 0.00000, 1.0 / rf]])
+        zF = Matriz([[1.0 / rf, 0.00000, 0.00000],
+                     [0.00000, 1.0 / rf, 0.00000],
+                     [0.00000, 0.00000, 1.0 / rf]])
     elif tipo == TpFalta.TRI_TERRA:
         # matriz de falta trifasica a terra
-        zF = np.matrix([[3 / rf, -1 / rf, -1 / rf],
-                        [-1 / rf, 3 / rf, -1 / rf],
-                        [-1 / rf, -1 / rf, 3 / rf]])
+        zF = Matriz([[3 / rf, -1 / rf, -1 / rf],
+                     [-1 / rf, 3 / rf, -1 / rf],
+                     [-1 / rf, -1 / rf, 3 / rf]])
     else:
         # matriz de falta monofasica
-        zF = np.matrix([[1.0 / rf, 0.00000, 0.00000],
-                        [0.00000, 0.00000, 0.00000],
-                        [0.00000, 0.00000, 0.00000]])
+        zF = Matriz([[1.0 / rf, 0.00000, 0.00000],
+                     [0.00000, 0.00000, 0.00000],
+                     [0.00000, 0.00000, 0.00000]])
 
-    zF = np.vstack((np.hstack((I3x3, Zeros3)),
-                    np.hstack((zF, I3x3))))
+    zF = Matriz.vstack((Matriz.hstack((I3x3, Zeros3)),
+                        Matriz.hstack((zF, I3x3))))
     return zF
 
 
@@ -192,8 +193,8 @@ def aplica_falta(vs_abc, zs_abc, zlp1, zlp2, m, zf, zr_abc, vr_abc):
     # Calcula a corrente de falta da fonte R
     Ir_abc = Ir(Ztotal_abc, vs_abc, vr_abc)
     # Monta o vetor VI com componentes abc da fonte R
-    VIr_abc = np.vstack((vr_abc,
-                         Ir_abc))
+    VIr_abc = Matriz.vstack((vr_abc,
+                             Ir_abc))
     # Calcula VI com componentes abc para o rele R - I com tombo de 180 graus
     VIreler_abc = I_ang_correcao * (zr_abc * VIr_abc)
     # Calcula VI com componentes abc para o rele S
@@ -216,8 +217,8 @@ def aplica_falta_atras(Vs_abc, Zs_abc, Zl_120, Zf, Zr_abc, Vr_abc):
     # Calcula a corrente de falta da fonte R
     Ir_abc = Ir(Ztotal_abc, Vs_abc, Vr_abc)
     # Monta o vetor VI com componentes abc da fonte R
-    VIr_abc = np.vstack((Vr_abc,
-                         Ir_abc))
+    VIr_abc = Matriz.vstack((Vr_abc,
+                             Ir_abc))
     # Calcula VI com componentes abc para o rele R - I com tombo de 180 graus
     VIreler_abc = I_ang_correcao * (Zr_abc * VIr_abc)
     # Calcula VI com componentes abc para o rele S

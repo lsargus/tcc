@@ -15,9 +15,10 @@ potencia
 """
 
 from src.tcc.calculos import funcoes67 as f67, faltas as flt
-from src.tcc.modelos.equivalente import Equivalente as Equiv
+from src.tcc.modelos.equivalente import Equivalente
 from src.tcc.modelos.linha import Linha
 from src.tcc.modelos.falta import Falta
+from src.tcc.util.matriz import Matriz
 from src.tcc.util.parametros import Parametros as Param
 from src.tcc.enums.tpFalta import TpFalta
 from src.tcc.enums.tpRele import TpRele
@@ -33,27 +34,21 @@ primarios ou secundarios
 """
 
 # Entrada de dados do sistema equivalente S
-equiv_S = Equiv(10000.0, 1 + 2j, 2 + 4j)
+equiv_S = Equivalente(10000.0, 1 + 2j, 2 + 4j)
 
 # Entrada de dados do sistema equivalente R
-equiv_R = Equiv(10000.0, 0.2 + 0.4j, 0.4 + 0.8j)
+equiv_R = Equivalente(10000.0, 0.2 + 0.4j, 0.4 + 0.8j)
 
 # Entrada de dados da Linha considerando o modelo pi
 # Comprimento da linha em km
 # Z da linha como R+jX em ohm/km
 # Y da linha como 0+jB em   S/km
 linha1 = Linha(400.0, 0.01 + 0.02j, 0.02 + 0.04j, 0.00 + 0.0000002j, 0.00 + 0.0000001j)
-# calcula os parametros da linha
-linha1.parametros_linha_totais()
 linha1.sofreu_falta = True
 
 linha2 = Linha(400.0, 0.01 + 0.02j, 0.02 + 0.04j, 0.00 + 0.0000002j, 0.00 + 0.0000001j)
-# calcula os parametros da linha
-linha2.parametros_linha_totais()
 
 linha3 = Linha(400.0, 0.01 + 0.02j, 0.02 + 0.04j, 0.00 + 0.0000002j, 0.00 + 0.0000001j)
-# calcula os parametros da linha
-linha3.parametros_linha_totais()
 
 # Entrada de dados da falta
 # tipo de falta (1-mono(default), 2-bi, 3-biterra, 4-tri, 5-triterra)
@@ -62,41 +57,56 @@ linha3.parametros_linha_totais()
 
 paramS = Param(TpFalta.MONO, TpRele.SEL_311, 0.001, 0.01)
 
+# Montagem da matriz da resistencia de falta
+
+elemento_falta = Falta(paramS.tipo_falta, paramS.resistencia_falta)
+
 # Fim da entrada de dados
 
-lista_elementos = [linha1, linha2, linha3]
 # Ini­cio do programa
 
-# Montagem das matrizes do sistema equivalente S
-equiv_S.monta_matrizes()
-
-# Montagem das matrizes do sistema equivalente R
-equiv_R.monta_matrizes()
-
-# Montagem da matriz da resistencia de falta monofasica
-
-elemento_falta = Falta(paramS.get_tipo_falta(), paramS.get_resistencia_falta())
+lista_elementos = [equiv_S, linha1, linha2, linha3, equiv_R]
 
 # Aplicacao da falta e leitura pelos reles
 VI_abc_rele_s = []
 VI_120_rele_s = []
 VI_abc_rele_r = []
 VI_120_rele_r = []
-dist_falta = [(-(paramS.get_intervalo_tempo()) * linha1.leng)]
+dist_falta = [(- paramS.intervalo_tempo * linha1.leng)]
+
+# verifica se os extremos da lista são equivalentes
+if isinstance(lista_elementos[0], Equivalente):
+    lista_elementos.pop(0)
+else:
+    raise Exception("Primeiro elemento da lista deve ser um equivalente!")
+
+if isinstance(lista_elementos[len(lista_elementos) - 1], Equivalente):
+    lista_elementos.pop()
+else:
+    raise Exception("Ultimo elemento da lista deve ser um equivalente!")
 
 falta = False
 quadr_esq = flt.H6x6
 quadr_dir = flt.H6x6
-for linha in lista_elementos:
-    if not linha.get_falta():
+linha_falta = None
+z_120_total = flt.H6x6
+for elemento in lista_elementos:
+    if not elemento.get_falta():
         if not falta:
-            quadr_esq = quadr_esq * linha.z_120
+            quadr_esq = quadr_esq * elemento.z_120
         else:
-            quadr_dir = quadr_dir * linha.z_120
+            quadr_dir = quadr_dir * elemento.z_120
     else:
-        falta = True
+        if isinstance(elemento, Linha):
+            falta = True
+            linha_falta = elemento
+            z_120_total = quadr_esq * elemento.z_120
+        else:
+            raise Exception("Apenas pode tem falta em uma linha!")
 
-z_120_total = linha1.z_120 * linha2.z_120 * linha3.z_120
+# Z total
+z_120_total = z_120_total * quadr_dir
+
 # Falta reversa ao rele S
 S_abc, R_abc, S_120, R_120 = flt.aplica_falta_atras(equiv_S.v_abc, equiv_S.z_abc, z_120_total, elemento_falta.z,
                                                     equiv_R.z_abc, equiv_R.v_abc)
@@ -106,9 +116,9 @@ VI_abc_rele_r.append(R_abc)
 VI_120_rele_r.append(R_120)
 
 # Faltas na linha
-for i in range(0, int(100 / (100 * paramS.get_intervalo_tempo())) + 1, 1):
+for i in range(0, int(100 / (100 * paramS.intervalo_tempo)) + 1, 1):
     m = i / 100
-    zlp1, zlp2 = linha1.parametros_linha_frac(m)
+    zlp1, zlp2 = linha_falta.parametros_linha_frac(m)
     zlp1 = quadr_esq * zlp1
     zlp2 = zlp2 * quadr_dir
     S_abc, R_abc, S_120, R_120 = flt.aplica_falta(equiv_S.v_abc, equiv_S.z_abc, zlp1, zlp2, m, elemento_falta.z,
@@ -117,10 +127,10 @@ for i in range(0, int(100 / (100 * paramS.get_intervalo_tempo())) + 1, 1):
     VI_120_rele_s.append(S_120)
     VI_abc_rele_r.append(R_abc)
     VI_120_rele_r.append(R_120)
-    dist_falta.append(m * linha1.leng)
+    dist_falta.append(m * linha_falta.leng)
 
 # Atualiza a posição 100% da linha e barra reversa no vetor distancia da falta
-dist_falta.append((1 + paramS.get_intervalo_tempo()) * linha1.leng)
+dist_falta.append((1 + paramS.intervalo_tempo) * linha1.leng)
 
 # Falta reversa ao rele R
 R_abc, S_abc, R_120, S_120 = flt.aplica_falta_atras(equiv_R.v_abc, equiv_R.z_abc, z_120_total, elemento_falta.z,
@@ -130,9 +140,9 @@ VI_120_rele_s.append(S_120)
 VI_abc_rele_r.append(R_abc)
 VI_120_rele_r.append(R_120)
 
-if paramS.get_tipo_rele == TpRele.GE_D90PLUS:
+if paramS.tipo_rele == TpRele.GE_D90PLUS:
     f67.GE_D90Plus(VI_120_rele_s, VI_abc_rele_s, VI_120_rele_r, VI_abc_rele_r, dist_falta)
-elif paramS.get_tipo_rele == TpRele.SIEMENS_7SJ62:  # Rele Siemens-7SJ62
+elif paramS.tipo_rele == TpRele.SIEMENS_7SJ62:  # Rele Siemens-7SJ62
     f67.Siemens_7SJ62(VI_120_rele_s, VI_abc_rele_s, VI_120_rele_r, VI_abc_rele_r, dist_falta)
 else:  # Relé SEL-311L
     f67.rele_SEL_67(VI_120_rele_s, VI_120_rele_r, linha1.z_1, linha1.z_0, dist_falta)
