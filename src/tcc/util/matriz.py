@@ -1,104 +1,103 @@
-import numpy as np
-from numpy.linalg import inv
+import ast
+import numpy
 
 
-class Matriz(object):
-    def __init__(self, data):
+def _convert_from_string(data):
+    for char in '[]':
+        data = data.replace(char, '')
+
+    rows = data.split(';')
+    new_data = []
+    count = 0
+    for row in rows:
+        trow = row.split(',')
+        new_row = []
+        for col in trow:
+            temp = col.split()
+            new_row.extend(map(ast.literal_eval, temp))
+        if count == 0:
+            n_cols = len(new_row)
+        elif len(new_row) != n_cols:
+            raise ValueError("Colunas não são do mesmo tamanho.")
+        count += 1
+        new_data.append(new_row)
+    return new_data
+
+
+class Matriz(numpy.ndarray):
+    def __new__(cls, data, dtype=None, copy=True):
         if isinstance(data, Matriz):
-            self._matriz = data.matriz
-        elif isinstance(data, np.ndarray):
-            self._matriz = data
+            dtype2 = data.dtype
+            if dtype is None:
+                dtype = dtype2
+            if dtype2 == dtype and not copy:
+                return data
+            return data.astype(dtype)
 
-        elif isinstance(data, type(np.array)):
-            self._matriz = data
+        elif isinstance(data, numpy.ndarray):
+            if dtype is None:
+                intype = data.dtype
+            else:
+                intype = numpy.dtype(dtype)
+            new = data.view(cls)
+            if intype != data.dtype:
+                return new.astype(intype)
+            if copy:
+                return new.copy()
+            else:
+                return new
+
+        elif isinstance(data, str):
+            data = _convert_from_string(data)
 
         elif isinstance(data, list):
-            self._matriz = np.array(data)
+            matriz = numpy.array(data, dtype=dtype, copy=copy)
 
-        if self._matriz.ndim != 2:
-            raise ValueError("Matriz deve ter duas dimensões!")
+        # now convert data to an array
+        arr = numpy.array(data, dtype=dtype, copy=copy)
+        n_dim = arr.ndim
+        shape = arr.shape
+        if n_dim != 2:
+            raise ValueError("Matriz deve ter duas dimensões")
+
+        order = 'C'
+        if arr.flags.fortran:
+            order = 'F'
+
+        if not (order or arr.flags.contiguous):
+            arr = arr.copy()
+
+        ret = numpy.ndarray.__new__(cls, shape, arr.dtype,
+                                    buffer=arr,
+                                    order=order)
+        return ret
 
     def nr_linhas(self):
         """Retorna o nr de linhas da matriz"""
-        return len(self._matriz)
+        return len(self)
 
     def nr_colunas(self):
         """Retorna o nr de colunas da matriz"""
-        return len(self._matriz[0])
-
-    def inv(self):
-        return Matriz(inv(self._matriz))
-
-    @staticmethod
-    def hstack(tup):
-        if isinstance(tup, tuple):
-            lista = []
-            for i in range(0, len(tup)):
-                lista.append(tup[i].matriz)
-        elif isinstance(tup, list):
-            lista = []
-            for matriz in tup:
-                lista.append(matriz.matriz)
-        else:
-            ValueError("Método deve receber uma tupla ou lista!")
-
-        return Matriz(np.hstack(lista))
-
-    @staticmethod
-    def vstack(tup):
-        if isinstance(tup, tuple):
-            lista = []
-            for i in range(0, len(tup)):
-                lista.append(tup[i].matriz)
-        elif isinstance(tup, list):
-            lista = ()
-            for matriz in tup:
-                lista.append(matriz.matriz)
-        else:
-            ValueError("Método deve receber uma tupla ou lista!")
-            raise
-        return Matriz(np.vstack(lista))
-
-    @property
-    def matriz(self):
-        return self._matriz
+        return len(self[0])
 
     def __mul__(self, other):
-        if type(other) == int or type(other) == float:
-            return Matriz(self._matriz * other)
+        if type(other) == int or type(other) == float or type(other) == complex:
+            return Matriz(numpy.array(self) * other)
         matriz2 = Matriz(other)
 
         # compara colunas da segunda matriz com as linhas da primeira, caso seja diferente lança uma AssertionError
-        assert (matriz2.nr_colunas() == self.nr_linhas()), 'Número de linhas e colunas divergentes!'
+        assert (self.nr_colunas() == matriz2.nr_linhas()), 'Número de linhas e colunas divergentes! operação :'
 
-        return Matriz(self._matriz @ matriz2.matriz)
+        return Matriz(self @ matriz2)
 
-    def __rmul__(self, other):
-        if type(other) == int or type(other) == float:
-            return Matriz(self._matriz * other)
-        matriz2 = Matriz(other)
+# ----------------------------------------------------------------------------------------------------------------------
+# Métodos estáticos
+# ----------------------------------------------------------------------------------------------------------------------
 
-        # compara colunas da segunda matriz com as linhas da primeira, caso seja diferente lança uma AssertionError
-        assert (matriz2.nr_colunas() == self.nr_linhas()), 'Número de linhas e colunas divergentes!'
+    @staticmethod
+    def concatena_horizontal(*args):
+        return Matriz(numpy.vstack(args))
 
-        return Matriz(matriz2.matriz @ self._matriz)
-
-    def __imul__(self, other):
-        if type(other) == int or type(other) == float:
-            return Matriz(self._matriz * other)
-
-        matriz2 = Matriz(other)
-
-        # compara colunas da segunda matriz com as linhas da primeira, caso seja diferente lança uma AssertionError
-        assert (matriz2.nr_colunas() == self.nr_linhas()), 'Número de linhas e colunas divergentes!'
-
-        return Matriz(self._matriz @ matriz2.matriz)
-
-    def __truediv__(self, other):
-        return Matriz(self._matriz / other)
-
-    def __str__(self):
-        return str(self._matriz)
-
-    def __repr__(self):
-        return 'Matriz \n %s' % self._matriz
+    @staticmethod
+    def concatena_vertical(*args):
+        return Matriz(numpy.hstack(args))

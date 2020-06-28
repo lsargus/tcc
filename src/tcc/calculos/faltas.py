@@ -34,13 +34,13 @@ Zeros3 = Matriz(np.zeros((3, 3)))
 I3x3 = Matriz(np.eye(3))
 
 # Matrizes para quadripolos trifasicos - 6x6
-H6x6 = Matriz.vstack((Matriz.hstack((H3x3, Zeros3)),
-                      Matriz.hstack((Zeros3, H3x3))))
+H6x6 = Matriz.concatena_vertical((Matriz.concatena_horizontal((H3x3, Zeros3)),
+                                  Matriz.concatena_horizontal((Zeros3, H3x3))))
 T6x6 = H6x6.inv()
 
 # Matriz para corrigir os angulos da corrente do rele R - 6x6
-I_ang_correcao = Matriz.vstack((Matriz.hstack((I3x3, Zeros3)),
-                                Matriz.hstack((Zeros3, -1 * I3x3))))
+I_ang_correcao = Matriz.concatena_vertical((Matriz.concatena_horizontal((I3x3, Zeros3)),
+                                            Matriz.concatena_horizontal((Zeros3, -1 * I3x3))))
 
 """
 Funcao definida para receber quadripolo em sequencia de fases e converte-la em
@@ -86,8 +86,8 @@ def z_120_6x6(z_1, z_0):
     Z_120 = Matriz([[z_1, 0.00000, 0.00000],
                     [0.00000, z_1, 0.00000],
                     [0.00000, 0.00000, z_0]])
-    z_120_6x6 = Matriz.vstack((Matriz.hstack((I3x3, Z_120)),
-                               Matriz.hstack((Zeros3, I3x3))))
+    z_120_6x6 = Matriz.concatena_vertical((Matriz.concatena_horizontal((I3x3, Z_120)),
+                                           Matriz.concatena_horizontal((Zeros3, I3x3))))
     return z_120_6x6
 
 
@@ -120,8 +120,8 @@ def zLine_120_6x6(z_1, y_1, z_0, y_0, leng):
     C_120 = Matriz([[C_1, 0, 0], [0, C_1, 0], [0, 0, C_0]])
     D_120 = Matriz([[D_1, 0, 0], [0, D_1, 0], [0, 0, D_0]])
 
-    zl_120_6x6 = Matriz.vstack((Matriz.hstack((A_120, B_120)),
-                                Matriz.hstack((C_120, D_120))))
+    zl_120_6x6 = Matriz.concatena_vertical((Matriz.concatena_horizontal((A_120, B_120)),
+                                            Matriz.concatena_horizontal((C_120, D_120))))
     return zl_120_6x6
 
 
@@ -158,8 +158,8 @@ def falta(tipo, rf):
                      [0.00000, 0.00000, 0.00000],
                      [0.00000, 0.00000, 0.00000]])
 
-    zF = Matriz.vstack((Matriz.hstack((I3x3, Zeros3)),
-                        Matriz.hstack((zF, I3x3))))
+    zF = Matriz.concatena_vertical((Matriz.concatena_horizontal((I3x3, Zeros3)),
+                                    Matriz.concatena_horizontal((zF, I3x3))))
     return zF
 
 
@@ -193,8 +193,8 @@ def aplica_falta(vs_abc, zs_abc, zlp1, zlp2, m, zf, zr_abc, vr_abc):
     # Calcula a corrente de falta da fonte R
     Ir_abc = Ir(Ztotal_abc, vs_abc, vr_abc)
     # Monta o vetor VI com componentes abc da fonte R
-    VIr_abc = Matriz.vstack((vr_abc,
-                             Ir_abc))
+    VIr_abc = Matriz.concatena_vertical((vr_abc,
+                                         Ir_abc))
     # Calcula VI com componentes abc para o rele R - I com tombo de 180 graus
     VIreler_abc = I_ang_correcao * (zr_abc * VIr_abc)
     # Calcula VI com componentes abc para o rele S
@@ -217,8 +217,8 @@ def aplica_falta_atras(Vs_abc, Zs_abc, Zl_120, Zf, Zr_abc, Vr_abc):
     # Calcula a corrente de falta da fonte R
     Ir_abc = Ir(Ztotal_abc, Vs_abc, Vr_abc)
     # Monta o vetor VI com componentes abc da fonte R
-    VIr_abc = Matriz.vstack((Vr_abc,
-                             Ir_abc))
+    VIr_abc = Matriz.concatena_vertical((Vr_abc,
+                                         Ir_abc))
     # Calcula VI com componentes abc para o rele R - I com tombo de 180 graus
     VIreler_abc = I_ang_correcao * (Zr_abc * VIr_abc)
     # Calcula VI com componentes abc para o rele S
