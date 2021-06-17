@@ -1,5 +1,8 @@
 # coding:utf-8
 import unittest
+
+import numpy
+
 from src.tcc.util.matriz import Matriz
 
 
@@ -74,13 +77,31 @@ class VerificarMatrizTests(unittest.TestCase):
         # verifica se o retorno é uma instancia de Matriz
         self.assertIsInstance(m, Matriz)
 
-    def test_new_cria_matriz_1d(self):
+    def test_new_cria_matriz_1d_linha(self):
         """
-        Testa a criação de uma matriz com 1 dimensão.
-        Teste deve falhar
+        Testa a criação de uma matriz linha.
         """
-        with self.assertRaises(ValueError):
-            Matriz([1, 2, 3, 4])
+        m = Matriz([[1, 2, 3, 4]])
+
+        self.assertEqual(m[0][0], 1)
+        self.assertEqual(m[0][1], 2)
+        self.assertEqual(m[0][2], 3)
+        self.assertEqual(m[0][3], 4)
+        # verifica se o retorno é uma instancia de Matriz
+        self.assertIsInstance(m, Matriz)
+
+    def test_new_cria_matriz_1d_coluna(self):
+        """
+        Testa a criação de uma matriz coluna.
+        """
+        m = Matriz([[1], [2], [3], [4]])
+
+        self.assertEqual(m[0][0], 1)
+        self.assertEqual(m[1][0], 2)
+        self.assertEqual(m[2][0], 3)
+        self.assertEqual(m[3][0], 4)
+        # verifica se o retorno é uma instancia de Matriz
+        self.assertIsInstance(m, Matriz)
 
     def test_new_cria_matriz_3d(self):
         """
@@ -408,53 +429,41 @@ class VerificarMatrizTests(unittest.TestCase):
     # método concatena_horizontal
     # ------------------------------------------------------------------------------------------------------------------
 
-    def test_concatena_horizontal_concatena_matriz_horizontalmente_um_elementos(self):
+    def test_inv_determina_matriz_inversa(self):
         """
-        Testa método concatena passando um elemento
+        Calcula a matriz inversa, ao mutiplicar com a própria matriz deve resultar em uma identidade.
         """
-        m1 = Matriz([[1, 2], [3, 4]])
+        m = Matriz([[2, 2, 3], [4, 5, 6], [7, 8, 9]])
+        inv = m.inv()
 
-        r = Matriz.concatena_horizontal(m1)
-
-        self.assertEqual(r.nr_linhas(), 2)
-        self.assertEqual(r.nr_colunas(), 2)
-        self.assertEqual(r[0][0], 1)
-        self.assertEqual(r[0][1], 2)
-        self.assertEqual(r[1][0], 3)
-        self.assertEqual(r[1][1], 4)
         # verifica se o retorno é uma instancia de Matriz
-        self.assertIsInstance(r, Matriz)
+        self.assertIsInstance(inv, Matriz)
 
-    def test_concatena_horizontal_concatena_matriz_horizontalmente_tres_elementos(self):
+        r = m * inv
+
+        self.assertAlmostEqual(r[0][0], 1, delta=1e-8)
+        self.assertAlmostEqual(r[0][1], 0, delta=1e-8)
+        self.assertAlmostEqual(r[0][2], 0, delta=1e-8)
+        self.assertAlmostEqual(r[1][0], 0, delta=1e-8)
+        self.assertAlmostEqual(r[1][1], 1, delta=1e-8)
+        self.assertAlmostEqual(r[1][2], 0, delta=1e-8)
+        self.assertAlmostEqual(r[2][0], 0, delta=1e-8)
+        self.assertAlmostEqual(r[2][1], 0, delta=1e-8)
+        self.assertAlmostEqual(r[2][2], 1, delta=1e-8)
+
+    def test_inv_calculo_matriz_nao_invertivel(self):
         """
-        Testa método concatena passando tres elemento, verifica ordem de concatenação
+        Calcula a matriz inversa, ao mutiplicar com a própria matriz deve resultar em uma identidade.
         """
-        m1 = Matriz([[1, 2], [3, 4]])
-        m2 = Matriz([[5, 6], [7, 8]])
-        m3 = Matriz([[9, 10], [11, 12]])
+        m = Matriz([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-        r = Matriz.concatena_horizontal(m1, m2, m3)
-
-        self.assertEqual(r.nr_linhas(), 6)
-        self.assertEqual(r.nr_colunas(), 2)
-        self.assertEqual(r[0][0], 1)
-        self.assertEqual(r[0][1], 2)
-        self.assertEqual(r[1][0], 3)
-        self.assertEqual(r[1][1], 4)
-        self.assertEqual(r[2][0], 5)
-        self.assertEqual(r[2][1], 6)
-        self.assertEqual(r[3][0], 7)
-        self.assertEqual(r[3][1], 8)
-        self.assertEqual(r[4][0], 9)
-        self.assertEqual(r[4][1], 10)
-        self.assertEqual(r[5][0], 11)
-        self.assertEqual(r[5][1], 12)
-        # verifica se o retorno é uma instancia de Matriz
-        self.assertIsInstance(r, Matriz)
-
+        with self.assertRaises(numpy.linalg.LinAlgError):
+            m.inv()
+        
     # ------------------------------------------------------------------------------------------------------------------
     # método concatena_vertical
     # ------------------------------------------------------------------------------------------------------------------
+
     def test_concatena_vertical_concatena_matriz_verticalmente_um_elementos(self):
         """
         Testa método concatena passando um elemento
@@ -481,6 +490,53 @@ class VerificarMatrizTests(unittest.TestCase):
         m3 = Matriz([[9, 10], [11, 12]])
 
         r = Matriz.concatena_vertical(m1, m2, m3)
+
+        self.assertEqual(r.nr_linhas(), 6)
+        self.assertEqual(r.nr_colunas(), 2)
+        self.assertEqual(r[0][0], 1)
+        self.assertEqual(r[0][1], 2)
+        self.assertEqual(r[1][0], 3)
+        self.assertEqual(r[1][1], 4)
+        self.assertEqual(r[2][0], 5)
+        self.assertEqual(r[2][1], 6)
+        self.assertEqual(r[3][0], 7)
+        self.assertEqual(r[3][1], 8)
+        self.assertEqual(r[4][0], 9)
+        self.assertEqual(r[4][1], 10)
+        self.assertEqual(r[5][0], 11)
+        self.assertEqual(r[5][1], 12)
+        # verifica se o retorno é uma instancia de Matriz
+        self.assertIsInstance(r, Matriz)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # método concatena_horizontal
+    # ------------------------------------------------------------------------------------------------------------------
+    def test_concatena_horizontal_concatena_matriz_horizontalmente_um_elementos(self):
+        """
+        Testa método concatena passando um elemento
+        """
+        m1 = Matriz([[1, 2], [3, 4]])
+
+        r = Matriz.concatena_horizontal(m1)
+
+        self.assertEqual(r.nr_linhas(), 2)
+        self.assertEqual(r.nr_colunas(), 2)
+        self.assertEqual(r[0][0], 1)
+        self.assertEqual(r[0][1], 2)
+        self.assertEqual(r[1][0], 3)
+        self.assertEqual(r[1][1], 4)
+        # verifica se o retorno é uma instancia de Matriz
+        self.assertIsInstance(r, Matriz)
+
+    def test_concatena_horizontal_concatena_matriz_horizontalmente_tres_elementos(self):
+        """
+        Testa método concatena passando tres elemento, verifica ordem de concatenação
+        """
+        m1 = Matriz([[1, 2], [3, 4]])
+        m2 = Matriz([[5, 6], [7, 8]])
+        m3 = Matriz([[9, 10], [11, 12]])
+
+        r = Matriz.concatena_horizontal(m1, m2, m3)
 
         self.assertEqual(r.nr_linhas(), 2)
         self.assertEqual(r.nr_colunas(), 6)

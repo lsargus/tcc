@@ -8,31 +8,32 @@ Classe que deve representar as linhas de transmissão
 
 
 class Linha(Elemento):
-    def __init__(self, leng, z_1, z_0, y_1, y_0):
-        self.leng = leng
+    def __init__(self, comprimento: float, z_1: complex, z_0: complex, y_1: complex, y_0: complex, nome: str):
+        self.compr = comprimento
         self.z_1 = z_1
         self.z_0 = z_0
         self.y_1 = y_1
         self.y_0 = y_0
         self.parametros_linha_totais()
+        self.nome = nome
 
     def parametros_linha_totais(self):
-        if self.leng > 100:
-            self.z_120 = flt.zLine_120_6x6(self.z_1, self.y_1, self.z_0, self.y_0, self.leng)
+        if self.compr > 100:
+            self.z_120 = flt.zLine_120_6x6(self.z_1, self.y_1, self.z_0, self.y_0, self.compr)
         else:
-            self.z_120 = flt.z_120_6x6(self.leng * self.z_1, self.leng * self.z_0)
+            self.z_120 = flt.z_120_6x6(self.compr * self.z_1, self.compr * self.z_0)
 
     def parametros_linha_frac(self, fracao):
-        if self.leng > 100:
+        if self.compr > 100:
             # Impedancia da linha do lado esquerdo
-            zlp1 = flt.zLine_120_6x6(self.z_1, self.y_1, self.z_0, self.y_0, self.leng * fracao)
+            zlp1 = flt.zLine_120_6x6(self.z_1, self.y_1, self.z_0, self.y_0, self.compr * fracao)
             # Impedancia da linha do lado direito
-            zlp2 = flt.zLine_120_6x6(self.z_1, self.y_1, self.z_0, self.y_0, self.leng * (1 - fracao))
+            zlp2 = flt.zLine_120_6x6(self.z_1, self.y_1, self.z_0, self.y_0, self.compr * (1 - fracao))
         else:
             # Impedancia da linha do lado esquerdo
-            zlp1 = flt.z_120_6x6(self.leng * fracao * self.z_1, self.leng * fracao * self.z_0)
+            zlp1 = flt.z_120_6x6(self.compr * fracao * self.z_1, self.compr * fracao * self.z_0)
             # Impedancia da linha do lado direito
-            zlp2 = flt.z_120_6x6(self.leng * (1 - fracao) * self.z_1, self.leng * (1 - fracao) * self.z_0)
+            zlp2 = flt.z_120_6x6(self.compr * (1 - fracao) * self.z_1, self.compr * (1 - fracao) * self.z_0)
 
         return zlp1, zlp2
 

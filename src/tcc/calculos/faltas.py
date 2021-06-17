@@ -1,46 +1,24 @@
-'''
+"""
 Este arquivo contem:
     Calculos e aplicacao das faltas
 Versao 1.2 - data 13 de maio de 2019
 
 Alteracoes:
 Foi separado o arquivo de aplicacao de faltas do de calculos das funcoes 67
-'''
+"""
 
 # Importacao de modulos
 import numpy as np
+import math
+from src.tcc.calculos import faltas as flt
 from src.tcc.enums.tpFalta import TpFalta
+from src.tcc.modelos.elemento import Elemento
+from src.tcc.modelos.equivalente import Equivalente
+from src.tcc.modelos.falta import Falta
+from src.tcc.modelos.transformador import Transformador
 from src.tcc.util.matriz import Matriz
-
-'''
-Matrizes para transformacao de sequencia de fase para componentes de sequencia
-e vice-versa pelo teorema de Fortescue
-'''
-# Definicao da constante a
-alpha = complex(np.cos(120 * np.pi / 180), np.sin(120 * np.pi / 180))
-
-# Matriz H - converte de componententes de fase para componentes simetricas
-# Caso trifasico - H3x3
-H3x3 = Matriz([[1, alpha, alpha ** 2],
-               [1, alpha ** 2, alpha],
-               [1, 1, 1]])
-H3x3 = H3x3 / 3
-
-# Matriz T - converte de componentes de sequencia para componentes de fase
-T3x3 = H3x3.inv()
-
-# Matrizes base - 3x3
-Zeros3 = Matriz(np.zeros((3, 3)))
-I3x3 = Matriz(np.eye(3))
-
-# Matrizes para quadripolos trifasicos - 6x6
-H6x6 = Matriz.concatena_vertical((Matriz.concatena_horizontal((H3x3, Zeros3)),
-                                  Matriz.concatena_horizontal((Zeros3, H3x3))))
-T6x6 = H6x6.inv()
-
-# Matriz para corrigir os angulos da corrente do rele R - 6x6
-I_ang_correcao = Matriz.concatena_vertical((Matriz.concatena_horizontal((I3x3, Zeros3)),
-                                            Matriz.concatena_horizontal((Zeros3, -1 * I3x3))))
+from src.tcc.util.parametros import Parametros
+from src.tcc.util import constantes_numericas as const
 
 """
 Funcao definida para receber quadripolo em sequencia de fases e converte-la em
@@ -49,14 +27,20 @@ componentes de sequencia ou vice-versa
 
 
 def z_120abc(z, conv):
-    """Converte matriz entre componentes de fase e de sequencia"""
+    """
+    Converte matriz entre componentes de fase e de sequencia
+    :param z: matriz a ser convertida
+    :param conv: <br>'120' caso seja passado uma matriz de sequencia a ser convertida para fase
+                 <br>'abc' caso seja passado uma matriz de fase a ser convertida para sequencia
+    :return:
+    """
     if conv == '120':
-        zabc120 = T6x6 * z * H6x6
+        z_abc_120 = const.T6x6 * z * const.H6x6
     elif conv == 'abc':
-        zabc120 = H6x6 * z * T6x6
+        z_abc_120 = const.H6x6 * z * const.T6x6
     else:
-        zabc120 = z
-    return zabc120
+        z_abc_120 = z
+    return z_abc_120
 
 
 """
@@ -69,10 +53,9 @@ def valor_abc(mag, ang):
     valor_a = complex(mag * np.cos((ang + 0) * np.pi / 180), mag * np.sin((ang + 0) * np.pi / 180))
     valor_b = complex(mag * np.cos((ang - 120) * np.pi / 180), mag * np.sin((ang - 120) * np.pi / 180))
     valor_c = complex(mag * np.cos((ang + 120) * np.pi / 180), mag * np.sin((ang + 120) * np.pi / 180))
-    valor_abc = Matriz([[valor_a],
-                        [valor_b],
-                        [valor_c]])
-    return valor_abc
+    return Matriz([[valor_a],
+                   [valor_b],
+                   [valor_c]])
 
 
 """
@@ -83,12 +66,11 @@ Gera uma matriz de impedancia trifasica 6x6 - quadripolos
 
 
 def z_120_6x6(z_1, z_0):
-    Z_120 = Matriz([[z_1, 0.00000, 0.00000],
+    z_120 = Matriz([[z_1, 0.00000, 0.00000],
                     [0.00000, z_1, 0.00000],
                     [0.00000, 0.00000, z_0]])
-    z_120_6x6 = Matriz.concatena_vertical((Matriz.concatena_horizontal((I3x3, Z_120)),
-                                           Matriz.concatena_horizontal((Zeros3, I3x3))))
-    return z_120_6x6
+    return Matriz.concatena_vertical(Matriz.concatena_horizontal(const.I3x3, z_120),
+                                     Matriz.concatena_horizontal(const.Zeros3, const.I3x3))
 
 
 """
@@ -106,22 +88,22 @@ def zLine_120_6x6(z_1, y_1, z_0, y_0, leng):
     zc_0 = np.sqrt(z_0 / y_0)
     gama_0 = np.sqrt(z_0 * y_0)
 
-    A_1 = np.cosh(gama_1 * leng)
-    B_1 = zc_1 * np.sinh(gama_1 * leng)
-    C_1 = np.sinh(gama_1 * leng) / zc_1
-    D_1 = np.cosh(gama_1 * leng)
-    A_0 = np.cosh(gama_0 * leng)
-    B_0 = zc_0 * np.sinh(gama_0 * leng)
-    C_0 = np.sinh(gama_0 * leng) / zc_0
-    D_0 = np.cosh(gama_0 * leng)
+    a_1 = np.cosh(gama_1 * leng)
+    b_1 = zc_1 * np.sinh(gama_1 * leng)
+    c_1 = np.sinh(gama_1 * leng) / zc_1
+    d_1 = np.cosh(gama_1 * leng)
+    a_0 = np.cosh(gama_0 * leng)
+    b_0 = zc_0 * np.sinh(gama_0 * leng)
+    c_0 = np.sinh(gama_0 * leng) / zc_0
+    d_0 = np.cosh(gama_0 * leng)
 
-    A_120 = Matriz([[A_1, 0, 0], [0, A_1, 0], [0, 0, A_0]])
-    B_120 = Matriz([[B_1, 0, 0], [0, B_1, 0], [0, 0, B_0]])
-    C_120 = Matriz([[C_1, 0, 0], [0, C_1, 0], [0, 0, C_0]])
-    D_120 = Matriz([[D_1, 0, 0], [0, D_1, 0], [0, 0, D_0]])
+    a_120 = Matriz([[a_1, 0, 0], [0, a_1, 0], [0, 0, a_0]])
+    b_120 = Matriz([[b_1, 0, 0], [0, b_1, 0], [0, 0, b_0]])
+    c_120 = Matriz([[c_1, 0, 0], [0, c_1, 0], [0, 0, c_0]])
+    d_120 = Matriz([[d_1, 0, 0], [0, d_1, 0], [0, 0, d_0]])
 
-    zl_120_6x6 = Matriz.concatena_vertical((Matriz.concatena_horizontal((A_120, B_120)),
-                                            Matriz.concatena_horizontal((C_120, D_120))))
+    zl_120_6x6 = Matriz.concatena_vertical(Matriz.concatena_horizontal(a_120, b_120),
+                                           Matriz.concatena_horizontal(c_120, d_120))
     return zl_120_6x6
 
 
@@ -134,97 +116,209 @@ def falta(tipo, rf):
     """tipo de falta (1-mono, 2-bi, 3-biterra, 4-tri, 5-triterra, default: mono)"""
     if tipo == TpFalta.BI:
         # matriz de falta bifasica
-        zF = Matriz([[1.0 / rf, -1.0 / rf, 0.00000],
-                     [-1.0 / rf, 1.0 / rf, 0.00000],
-                     [0.00000, 0.00000, 0.00000]])
+        z_falta = Matriz([[1.0 / rf, -1.0 / rf, 0.00000],
+                          [-1.0 / rf, 1.0 / rf, 0.00000],
+                          [0.00000, 0.00000, 0.00000]])
     elif tipo == TpFalta.BI_TERRA:
         # matriz de falta bifasica  terra
-        zF = Matriz([[2.0 / rf, -1.0 / rf, 0.00000],
-                     [-1.0 / rf, 2.0 / rf, 0.00000],
-                     [0.00000, 0.00000, 0.00000]])
+        z_falta = Matriz([[2.0 / rf, -1.0 / rf, 0.00000],
+                          [-1.0 / rf, 2.0 / rf, 0.00000],
+                          [0.00000, 0.00000, 0.00000]])
     elif tipo == TpFalta.TRI:
         # matriz de falta trifasica
-        zF = Matriz([[1.0 / rf, 0.00000, 0.00000],
-                     [0.00000, 1.0 / rf, 0.00000],
-                     [0.00000, 0.00000, 1.0 / rf]])
+        z_falta = Matriz([[1.0 / rf, 0.00000, 0.00000],
+                          [0.00000, 1.0 / rf, 0.00000],
+                          [0.00000, 0.00000, 1.0 / rf]])
     elif tipo == TpFalta.TRI_TERRA:
         # matriz de falta trifasica a terra
-        zF = Matriz([[3 / rf, -1 / rf, -1 / rf],
-                     [-1 / rf, 3 / rf, -1 / rf],
-                     [-1 / rf, -1 / rf, 3 / rf]])
+        z_falta = Matriz([[3 / rf, -1 / rf, -1 / rf],
+                          [-1 / rf, 3 / rf, -1 / rf],
+                          [-1 / rf, -1 / rf, 3 / rf]])
     else:
         # matriz de falta monofasica
-        zF = Matriz([[1.0 / rf, 0.00000, 0.00000],
-                     [0.00000, 0.00000, 0.00000],
-                     [0.00000, 0.00000, 0.00000]])
+        z_falta = Matriz([[1.0 / rf, 0.00000, 0.00000],
+                          [0.00000, 0.00000, 0.00000],
+                          [0.00000, 0.00000, 0.00000]])
 
-    zF = Matriz.concatena_vertical((Matriz.concatena_horizontal((I3x3, Zeros3)),
-                                    Matriz.concatena_horizontal((zF, I3x3))))
-    return zF
-
-
-def Ir(Z, vs, Vr):
-    """Calculo da corrente do lado receptor"""
-    A = Z[:3, :3]
-    B = Z[:3, 3:]
-    b_inv = B.getI()
-    Ir = b_inv * (vs - A * Vr)
-    return Ir
+    z_falta = Matriz.concatena_vertical(Matriz.concatena_horizontal(const.I3x3, const.Zeros3),
+                                        Matriz.concatena_horizontal(z_falta, const.I3x3))
+    return z_falta
 
 
-def aplica_falta(vs_abc, zs_abc, zlp1, zlp2, m, zf, zr_abc, vr_abc):
+def Ir(z, vs, vr):
+    """
+    Calculo da corrente do lado receptor
+
+        Parametros:
+        -------------
+        z: matriz
+            Matriz das impedancias totais do sistema
+        vs: matriz
+            Matris com valores de tensão abc do equivalente S
+        vr: matriz
+            Matris com valores de tensão abc do equivalente R
+        -------------
+        returns
+            Corrente de falta na fonte R
+    """
+    a = z[:3, :3]
+    b = z[:3, 3:]
+    b_inv = b.inv()
+    return b_inv * (vs - a * vr)
+
+
+def aplica_falta(vs_abc, zs_abc, zlp1, zlp2, m, zf, zr_abc, vr_abc, falta: bool, pre_falta: bool):
     """Aplica falta ao longo da linha"""
 
     # Converte Z da linha de abc para 120
-    Zlp1_abc = z_120abc(zlp1, '120')
-    Zlp2_abc = z_120abc(zlp2, '120')
+    z_lp1_abc = z_120abc(zlp1, '120')
+    z_lp2_abc = z_120abc(zlp2, '120')
 
     # Calcula a Z da linha com a falta
-    if (m == 0):
-        Zl_abc = zf * Zlp2_abc
-    elif (m == 1):
-        Zl_abc = Zlp1_abc * zf
+    if m == 0:
+        z_l_abc = zf * z_lp2_abc
+    elif m == 1:
+        z_l_abc = z_lp1_abc * zf
     else:
-        Zl_abc = Zlp1_abc * zf * Zlp2_abc
+        z_l_abc = z_lp1_abc * zf * z_lp2_abc
 
     # Calcula a Z total entre as duas fontes
-    Ztotal_abc = zs_abc * Zl_abc * zr_abc
+    z_total_abc = zs_abc * z_l_abc * zr_abc
 
-    # Calcula a corrente de falta da fonte R
-    Ir_abc = Ir(Ztotal_abc, vs_abc, vr_abc)
-    # Monta o vetor VI com componentes abc da fonte R
-    VIr_abc = Matriz.concatena_vertical((vr_abc,
-                                         Ir_abc))
-    # Calcula VI com componentes abc para o rele R - I com tombo de 180 graus
-    VIreler_abc = I_ang_correcao * (zr_abc * VIr_abc)
-    # Calcula VI com componentes abc para o rele S
-    VIreles_abc = (Zl_abc * zr_abc) * VIr_abc
-    # Calcula VI com componentes 120 para os reles R e S
-    VIreler_120 = H6x6 * VIreler_abc
-    VIreles_120 = H6x6 * VIreles_abc
+    return calculo_falta(vs_abc, zr_abc, vr_abc, z_l_abc, z_total_abc, falta, pre_falta)
 
-    return VIreles_abc, VIreler_abc, VIreles_120, VIreler_120
-
-
-def aplica_falta_atras(Vs_abc, Zs_abc, Zl_120, Zf, Zr_abc, Vr_abc):
+'''
+def aplica_falta_atras(vs_abc, zs_abc, zl_120, zf, zr_abc, vr_abc):
     """Aplica a falta reversa ao rele"""
 
     # Converte Z da linha de abc para 120
-    Zl_abc = z_120abc(Zl_120, '120')
+    z_l_abc = z_120abc(zl_120, '120')
     # Calcula a Z total entre as duas fontes
-    Ztotal_abc = Zs_abc * Zf * Zl_abc * Zr_abc
+    z_total_abc = zs_abc * zf * z_l_abc * zr_abc
+
+    return calculo_falta(vs_abc, zr_abc, vr_abc, z_l_abc, z_total_abc)
+'''
+
+def aplica_falta_transformador(equiv_s: Equivalente, trans: Transformador, fal: Falta, equiv_r: Equivalente):
+    """
+    Aplica faltas no transformador, uma atrás e uma na frente do transformador
+
+    :param equiv_s: equivalente S
+    :param trans: transformador
+    :param fal: elemento de falta
+    :param equiv_r: equivalente R
+
+    :return: valores de corrente e tensão antes e após o transformador (Não realizar faltas no interior
+    do transformador)
+    """
+    vi_r_abc = []
+    vi_s_abc = []
+    vi_r_120 = []
+    vi_s_120 = []
+
+    # Calcula a Z total entre as duas fontes
+    z_total_abc_d = equiv_s.z_abc * fal.z * trans.z_abc * equiv_r.z_abc
+    vi_s_abc_temp, vi_r_abc_temp = calculo_tensao_corrente(equiv_r, equiv_s, z_total_abc_d)
+
+    vi_s_abc = vi_s_abc_temp
+    vi_r_abc = vi_r_abc_temp
+    vi_s_120 = const.H6x6 * vi_s_abc_temp
+    vi_r_120 = const.H6x6 * vi_r_abc_temp
+
+    # Calcula a Z total entre as duas fontes
+    z_total_abc_r = equiv_s.z_abc * trans.z_abc * fal.z * equiv_r.z_abc
+    vi_s_abc_temp, vi_r_abc_temp = calculo_tensao_corrente(equiv_r, equiv_s, z_total_abc_r)
+
+    vi_s_abc = Matriz.concatena_horizontal(vi_s_abc, vi_s_abc_temp)
+    vi_r_abc = Matriz.concatena_horizontal(vi_r_abc, vi_r_abc_temp)
+    vi_s_120 = Matriz.concatena_horizontal(vi_s_120, const.H6x6 * vi_s_abc_temp)
+    vi_r_120 = Matriz.concatena_horizontal(vi_r_120, const.H6x6 * vi_r_abc_temp)
+
+    return vi_s_abc, vi_r_abc, vi_s_120, vi_r_120
+
+
+def calculo_tensao_corrente(equiv_r, equiv_s, z_total_abc):
+    """
+    Realiza o calculos da corrente e tensão do circuito
+
+    :param equiv_r: equivalente R
+    :param equiv_s: equivalente S
+    :param z_total_abc: Impedancia total do circuito
+    :return: Matrizes 6x1 com as tesões e correntes nos dois relés com valores em fase e sequencia
+    """
+    # Calcula a corrente de falta da fonte R
+    i_r_abc = Ir(z_total_abc, equiv_s.v_abc, equiv_r.v_abc)
+    # Monta o vetor VI com componentes abc da fonte R
+    vi_r_abc = Matriz.concatena_vertical(equiv_r.v_abc, i_r_abc)
+    vi_s_abc = z_total_abc * vi_r_abc
+    vi_s_rele = equiv_s.z_abc.inv() * vi_s_abc
+    vi_r_rele = equiv_r.z_abc.inv() * vi_r_abc
+
+    if True:
+        for ponto in vi_s_rele:
+            print(abs(ponto), ',  ang ', math.degrees(np.angle(ponto)))
+        print('-------------')
+        for ponto in vi_r_rele:
+            print(abs(ponto), ',  ang ', math.degrees(np.angle(ponto)))
+        print('-------------')
+
+        for ponto in i_r_abc:
+            print(abs(ponto), ',  ang ', math.degrees(np.angle(ponto)))
+        print('-------------')
+
+    return vi_s_rele, vi_r_rele
+
+
+def calculo_falta(vs_abc, zr_abc, vr_abc, z_l_abc, z_total_abc, falta: bool, pre_falta: bool):
+    """Realiza o calculo da falta no rele """
 
     # Calcula a corrente de falta da fonte R
-    Ir_abc = Ir(Ztotal_abc, Vs_abc, Vr_abc)
+    i_r_abc = Ir(z_total_abc, vs_abc, vr_abc)
     # Monta o vetor VI com componentes abc da fonte R
-    VIr_abc = Matriz.concatena_vertical((Vr_abc,
-                                         Ir_abc))
+    vi_r_abc = Matriz.concatena_vertical(vr_abc, i_r_abc)
     # Calcula VI com componentes abc para o rele R - I com tombo de 180 graus
-    VIreler_abc = I_ang_correcao * (Zr_abc * VIr_abc)
+    vi_reler_abc = const.I_ang_correcao * (zr_abc * vi_r_abc)
     # Calcula VI com componentes abc para o rele S
-    VIreles_abc = (Zl_abc * Zr_abc) * VIr_abc
-    # Calcula VI com componentes 120 para os reles R e S
-    VIreler_120 = H6x6 * VIreler_abc
-    VIreles_120 = H6x6 * VIreles_abc
+    vi_reles_abc = (z_l_abc * zr_abc) * vi_r_abc
 
-    return VIreles_abc, VIreler_abc, VIreles_120, VIreler_120
+    # verifica a posição dos relés para inverter a corrente
+    # se for antes do relé S inverte a corrente vista pelo relé S
+    if pre_falta and not falta:
+        vi_reles_abc = const.I_ang_correcao * vi_reles_abc
+    # caso seja após o relé R inverte a corrente vista pelo relé R
+    elif not falta:
+        vi_reler_abc = const.I_ang_correcao * vi_reler_abc
+
+    # Calcula VI com componentes 120 para os reles R e S
+    vi_reler_120 = const.H6x6 * vi_reler_abc
+    vi_reles_120 = const.H6x6 * vi_reles_abc
+
+    return vi_reles_abc, vi_reler_abc, vi_reles_120, vi_reler_120
+
+
+def percorre_linha_com_falta(linha_falta: Elemento, param_s: Parametros, equiv_s: Equivalente, equiv_r: Equivalente,
+                             lado_dir: Matriz, lado_esq: Matriz, elemento_falta: Falta, pre_falta: bool,
+                             dist_ini: float):
+    vi_abc_rele_s = []
+    vi_120_rele_s = []
+    vi_abc_rele_r = []
+    vi_120_rele_r = []
+    dist_falta = []
+
+    # Faltas na linha, verifica se é o primeiro elemento sobre análise, caso seja considera posição na barra, caso
+    # contrario faz o calculo imediatamente depois pois a barra já foi testado no elemento anterior
+    for i in range(0 if dist_ini == 0 else 1, int(100 / (100 * param_s.intervalo_tempo)) + 1, 1):
+        m = i / 100
+        zlp1, zlp2 = linha_falta.parametros_linha_frac(m)
+        zlp1 = lado_esq * zlp1
+        zlp2 = zlp2 * lado_dir
+        s_abc, r_abc, s_120, r_120 = flt.aplica_falta(equiv_s.v_abc, equiv_s.z_abc, zlp1, zlp2, m, elemento_falta.z,
+                                                      equiv_r.z_abc, equiv_r.v_abc, linha_falta.sofreu_falta, pre_falta)
+
+        vi_abc_rele_s.append(s_abc)
+        vi_120_rele_s.append(s_120)
+        vi_abc_rele_r.append(r_abc)
+        vi_120_rele_r.append(r_120)
+        dist_falta.append((m * linha_falta.compr) + dist_ini)
+
+    return vi_abc_rele_s, vi_120_rele_s, vi_abc_rele_r, vi_120_rele_r, dist_falta

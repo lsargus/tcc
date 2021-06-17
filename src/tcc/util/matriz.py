@@ -57,8 +57,8 @@ class Matriz(numpy.ndarray):
         arr = numpy.array(data, dtype=dtype, copy=copy)
         n_dim = arr.ndim
         shape = arr.shape
-        if n_dim != 2:
-            raise ValueError("Matriz deve ter duas dimensões")
+        if n_dim > 2:
+            raise ValueError("Matriz pode ter até duas dimensões")
 
         order = 'C'
         if arr.flags.fortran:
@@ -80,6 +80,15 @@ class Matriz(numpy.ndarray):
         """Retorna o nr de colunas da matriz"""
         return len(self[0])
 
+    def inv(self):
+        try:
+            return Matriz(numpy.linalg.inv(self))
+        except numpy.linalg.LinAlgError:
+            raise numpy.linalg.LinAlgError('Matriz não possui inversa')
+
+    def to_array(self):
+        return self.__array__()
+
     def __mul__(self, other):
         if type(other) == int or type(other) == float or type(other) == complex:
             return Matriz(numpy.array(self) * other)
@@ -96,8 +105,20 @@ class Matriz(numpy.ndarray):
 
     @staticmethod
     def concatena_horizontal(*args):
-        return Matriz(numpy.vstack(args))
+        if isinstance(args[0], Matriz):
+            array = []
+            for matriz in args:
+                array.append(matriz.__array__())
+
+            return Matriz(numpy.hstack(array))
+        return Matriz(numpy.hstack(args))
 
     @staticmethod
     def concatena_vertical(*args):
-        return Matriz(numpy.hstack(args))
+        if isinstance(args[0], Matriz):
+            array = []
+            for matriz in args:
+                array.append(matriz.__array__())
+
+            return Matriz(numpy.vstack(array))
+        return Matriz(numpy.vstack(args))

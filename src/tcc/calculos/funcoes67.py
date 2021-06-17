@@ -1,4 +1,4 @@
-'''
+"""
 Este arquivo contem:
     Matrizes de V e I de ambos os extremos da linha
     Matrizes de impedancias das fontes e linha (curta e longa)
@@ -6,12 +6,16 @@ Versao 1.2 - data 13 de maio de 2019
 
 Alteracoes:
 Foi separado o arquivo de aplicacao de faltas do de calculos das funcoes 67
-'''
+"""
 
 # Importacao de modulos
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+
+COMPRIMENTO = "Comprimento (km)"
+ANGULO_S = 'angulo s'
+ANGULO_R = 'angulo r'
 
 
 def plota_graficos(x_axes, y_axes_s, y_axes_r, nome_s, nome_r, titulo, tit_y, tit_x):
@@ -52,8 +56,6 @@ def plota_graficos1(x_axes, y_axes_s, y_axes_r, nome_s, nome_r, titulo, tit_y, t
     plt.tick_params(labelsize=14)
     plt.legend(loc='best')
 
-    # plt.xlim(min(lista_dist_falta), max(lista_dist_falta))
-
 
 def angulo(retangular):
     real_ret = retangular.real
@@ -69,255 +71,255 @@ def angulo(retangular):
 
 def aquisita_modulos(lista, posicao):
     lista_mod = []
-    for i in lista:
+    for _ in lista:
         mod = round(abs(lista[posicao, 0]), 2)
         lista_mod.append(mod)
     return lista_mod
 
 
-def rele_SEL_67(VI_S_120, VI_R_120, Z_1, Z_0, dist_falta):
-    I2s = []
-    a2s = []
-    k2s = []
-    Z2s = []
-    I0s = []
-    a0s = []
-    Z0s = []
-    I2r = []
-    a2r = []
-    k2r = []
-    Z2r = []
-    I0r = []
-    a0r = []
-    Z0r = []
-    for i in VI_S_120:
-        modI1 = abs(i[3, 0])
-        modI2 = abs(i[4, 0])
-        modI0 = abs(i[5, 0])
-        I2s.append(round(3 * modI2, 4))
-        a2s.append(round(modI2 / modI1, 4))
-        k2s.append(round(modI2 / modI0, 4))
-        Z2 = (i[1, 0] * np.conjugate(i[4, 0] * (Z_1 / abs(Z_1)))).real / (modI2 ** 2)
-        Z2s.append(Z2)
-        I0s.append(round(3 * modI0, 4))
-        a0s.append(round(modI0 / modI1, 4))
-        Z0 = ((3 * i[2, 0]) * np.conjugate((3 * i[5, 0]) * (Z_0 / abs(Z_0)))).real / ((3 * modI0) ** 2)
-        Z0s.append(Z0)
-    for i in VI_R_120:
-        modI1 = abs(i[3, 0])
-        modI2 = abs(i[4, 0])
-        modI0 = abs(i[5, 0])
-        I2r.append(round(3 * modI2, 4))
-        a2r.append(round(modI2 / modI1, 4))
-        k2r.append(round(modI2 / modI0, 4))
-        Z2 = (i[1, 0] * np.conjugate(i[4, 0] * (Z_1 / abs(Z_1)))).real / (modI2 ** 2)
-        Z2r.append(Z2)
-        I0r.append(round(3 * modI0, 4))
-        a0r.append(round(modI0 / modI1, 4))
-        Z0 = ((3 * i[2, 0]) * np.conjugate((3 * i[5, 0]) * (Z_0 / abs(Z_0)))).real / ((3 * modI0) ** 2)
-        Z0r.append(Z0)
+def rele_SEL_67(vi_s_120, vi_r_120, z_1, z_0, dist_falta):
+    i_2s = []
+    a_2s = []
+    k_2s = []
+    z_2s = []
+    i_0s = []
+    a_0s = []
+    z_0s = []
+    i_2r = []
+    a_2r = []
+    k_2r = []
+    z_2r = []
+    i_0r = []
+    a_0r = []
+    z_0r = []
+    for i in vi_s_120:
+        mod_i1 = abs(i[3, 0])
+        mod_i2 = abs(i[4, 0])
+        mod_i0 = abs(i[5, 0])
+        i_2s.append(round(3 * mod_i2, 4))
+        a_2s.append(round(mod_i2 / mod_i1, 4))
+        k_2s.append(round(mod_i2 / mod_i0, 4))
+        z2 = (i[1, 0] * np.conjugate(i[4, 0] * (z_1 / abs(z_1)))).real / (mod_i2 ** 2)
+        z_2s.append(z2)
+        i_0s.append(round(3 * mod_i0, 4))
+        a_0s.append(round(mod_i0 / mod_i1, 4))
+        z0 = ((3 * i[2, 0]) * np.conjugate((3 * i[5, 0]) * (z_0 / abs(z_0)))).real / ((3 * mod_i0) ** 2)
+        z_0s.append(z0)
+    for i in vi_r_120:
+        mod_i1 = abs(i[3, 0])
+        mod_i2 = abs(i[4, 0])
+        mod_i0 = abs(i[5, 0])
+        i_2r.append(round(3 * mod_i2, 4))
+        a_2r.append(round(mod_i2 / mod_i1, 4))
+        k_2r.append(round(mod_i2 / mod_i0, 4))
+        z2 = (i[1, 0] * np.conjugate(i[4, 0] * (z_1 / abs(z_1)))).real / (mod_i2 ** 2)
+        z_2r.append(z2)
+        i_0r.append(round(3 * mod_i0, 4))
+        a_0r.append(round(mod_i0 / mod_i1, 4))
+        z0 = ((3 * i[2, 0]) * np.conjugate((3 * i[5, 0]) * (z_0 / abs(z_0)))).real / ((3 * mod_i0) ** 2)
+        z_0r.append(z0)
 
     # Graficos
-    plota_graficos(dist_falta, I2s, I2r, '3I2s', '3I2r', "3I2 x comp", "3I2 (A)", "Comprimento (km)")
-    plota_graficos(dist_falta, a2s, a2r, 'a2s', 'a2r', "a2 x comp", "a2", "Comprimento (km)")
-    plota_graficos(dist_falta, k2s, k2r, 'k2s', 'k2r', "k2 x comp", "k2", "Comprimento (km)")
-    plota_graficos(dist_falta, Z2s, Z2r, 'Z2s', 'Z2r', "Z2 x comp", "Z2 (Ohm)", "Comprimento (km)")
-    plota_graficos(dist_falta, I0s, I0r, '3I0s', '3I0r', "3I0 x comp", "3I0 (A)", "Comprimento (km)")
-    plota_graficos(dist_falta, a0s, a0r, 'a0s', 'a0r', "a0 x comp", "a0", "Comprimento (km)")
-    plota_graficos(dist_falta, Z0s, Z0r, 'Z0s', 'Z0r', "Z0 x comp", "Z0 (Ohm)", "Comprimento (km)")
+    plota_graficos(dist_falta, i_2s, i_2r, '3I2s', '3I2r', "3I2 x comp", "3I2 (A)", "Comprimento (km)")
+    plota_graficos(dist_falta, a_2s, a_2r, 'a2s', 'a2r', "a2 x comp", "a2", "Comprimento (km)")
+    plota_graficos(dist_falta, k_2s, k_2r, 'k2s', 'k2r', "k2 x comp", "k2", "Comprimento (km)")
+    plota_graficos(dist_falta, z_2s, z_2r, 'Z2s', 'Z2r', "Z2 x comp", "Z2 (Ohm)", "Comprimento (km)")
+    plota_graficos(dist_falta, i_0s, i_0r, '3I0s', '3I0r', "3I0 x comp", "3I0 (A)", "Comprimento (km)")
+    plota_graficos(dist_falta, a_0s, a_0r, 'a0s', 'a0r', "a0 x comp", "a0", "Comprimento (km)")
+    plota_graficos(dist_falta, z_0s, z_0r, 'Z0s', 'Z0r', "Z0 x comp", "Z0 (Ohm)", "Comprimento (km)")
 
 
-def GE_D90Plus(VI_S_120, VI_S_abc, VI_R_120, VI_R_abc, dist_falta):
-    Ias = []
-    Ibs = []
-    Ics = []
-    Vbcs = []
-    Vcas = []
-    Vabs = []
-    ang_Ia_Vbcs = []
-    ang_Ib_Vcas = []
-    ang_Ic_Vabs = []
-    ang_3I0_V0s = []
-    ang_I2_V2s = []
-    for i in VI_S_abc:
-        Ia = i[3, 0]
-        Ib = i[4, 0]
-        Ic = i[5, 0]
-        Va = i[0, 0]
-        Vb = i[1, 0]
-        Vc = i[2, 0]
-        Vab = Va - Vb
-        Vbc = Vb - Vc
-        Vca = Vc - Va
-        Ias.append(round(abs(Ia), 2))
-        Ibs.append(round(abs(Ib), 2))
-        Ics.append(round(abs(Ic), 2))
-        Vbcs.append(round(abs(Vbc), 2))
-        Vcas.append(round(abs(Vca), 2))
-        Vabs.append(round(abs(Vab), 2))
-        ang_Ia_Vbc = angulo(Ia) - angulo(Vbc)
-        ang_Ib_Vca = angulo(Ib) - angulo(Vca)
-        ang_Ic_Vab = angulo(Ic) - angulo(Vab)
-        ang_Ia_Vbcs.append(round(abs(ang_Ia_Vbc), 2))
-        ang_Ib_Vcas.append(round(abs(ang_Ib_Vca), 2))
-        ang_Ic_Vabs.append(round(abs(ang_Ic_Vab), 2))
-    for i in VI_S_120:
-        V2 = i[1, 0]
-        V0 = i[2, 0]
-        I2 = i[4, 0]
-        I0 = i[5, 0]
-        ang_3I0_V0 = angulo(I0) - angulo(-V0)
-        ang_I2_V2 = angulo(I2) - angulo(-V2)
-        ang_3I0_V0s.append(round(abs(ang_3I0_V0), 2))
-        ang_I2_V2s.append(round(abs(ang_I2_V2), 2))
+def GE_D90Plus(vi_s_120, vi_s_abc, vi_r_120, vi_r_abc, dist_falta):
+    i_as = []
+    i_bs = []
+    i_cs = []
+    v_bcs = []
+    v_cas = []
+    v_abs = []
+    ang_ia_vbcs = []
+    ang_ib_vcas = []
+    ang_ic_vabs = []
+    ang_3i0_v0s = []
+    ang_i2_v2s = []
+    for i in vi_s_abc:
+        i_a = i[3, 0]
+        i_b = i[4, 0]
+        i_c = i[5, 0]
+        v_a = i[0, 0]
+        v_b = i[1, 0]
+        v_c = i[2, 0]
+        v_ab = v_a - v_b
+        v_bc = v_b - v_c
+        v_ca = v_c - v_a
+        i_as.append(round(abs(i_a), 2))
+        i_bs.append(round(abs(i_b), 2))
+        i_cs.append(round(abs(i_c), 2))
+        v_bcs.append(round(abs(v_bc), 2))
+        v_cas.append(round(abs(v_ca), 2))
+        v_abs.append(round(abs(v_ab), 2))
+        ang_ia_vbc = angulo(i_a) - angulo(v_bc)
+        ang_ib_vca = angulo(i_b) - angulo(v_ca)
+        ang_ic_vab = angulo(i_c) - angulo(v_ab)
+        ang_ia_vbcs.append(round(abs(ang_ia_vbc), 2))
+        ang_ib_vcas.append(round(abs(ang_ib_vca), 2))
+        ang_ic_vabs.append(round(abs(ang_ic_vab), 2))
+    for i in vi_s_120:
+        v2 = i[1, 0]
+        v0 = i[2, 0]
+        i2 = i[4, 0]
+        i0 = i[5, 0]
+        ang_3i0_v0 = angulo(i0) - angulo(-v0)
+        ang_i2_v2 = angulo(i2) - angulo(-v2)
+        ang_3i0_v0s.append(round(abs(ang_3i0_v0), 2))
+        ang_i2_v2s.append(round(abs(ang_i2_v2), 2))
 
-    Iar = []
-    Ibr = []
-    Icr = []
-    Vbcr = []
-    Vcar = []
-    Vabr = []
-    ang_Ia_Vbcr = []
-    ang_Ib_Vcar = []
-    ang_Ic_Vabr = []
-    ang_3I0_V0r = []
-    ang_I2_V2r = []
-    for i in VI_R_abc:
-        Ia = i[3, 0]
-        Ib = i[4, 0]
-        Ic = i[5, 0]
-        Va = i[0, 0]
-        Vb = i[1, 0]
-        Vc = i[2, 0]
-        Vab = Va - Vb
-        Vbc = Vb - Vc
-        Vca = Vc - Va
-        Iar.append(round(abs(Ia), 2))
-        Ibr.append(round(abs(Ib), 2))
-        Icr.append(round(abs(Ic), 2))
-        Vbcr.append(round(abs(Vbc), 2))
-        Vcar.append(round(abs(Vca), 2))
-        Vabr.append(round(abs(Vab), 2))
-        ang_Ia_Vbc = angulo(Ia) - angulo(Vbc)
-        ang_Ib_Vca = angulo(Ib) - angulo(Vca)
-        ang_Ic_Vab = angulo(Ic) - angulo(Vab)
-        ang_Ia_Vbcr.append(round(abs(ang_Ia_Vbc), 2))
-        ang_Ib_Vcar.append(round(abs(ang_Ib_Vca), 2))
-        ang_Ic_Vabr.append(round(abs(ang_Ic_Vab), 2))
-    for i in VI_R_120:
-        V2 = i[1, 0]
-        V0 = i[2, 0]
-        I2 = i[4, 0]
-        I0 = i[5, 0]
-        ang_3I0_V0 = angulo(I0) - angulo(-V0)
-        ang_I2_V2 = angulo(I2) - angulo(-V2)
-        ang_3I0_V0r.append(round(abs(ang_3I0_V0), 2))
-        ang_I2_V2r.append(round(abs(ang_I2_V2), 2))
+    i_ar = []
+    i_br = []
+    i_cr = []
+    v_bcr = []
+    v_car = []
+    v_abr = []
+    ang_ia_vbcr = []
+    ang_ib_vcar = []
+    ang_ic_vabr = []
+    ang_3i0_v0r = []
+    ang_i2_v2r = []
+    for i in vi_r_abc:
+        i_a = i[3, 0]
+        i_b = i[4, 0]
+        i_c = i[5, 0]
+        v_a = i[0, 0]
+        v_b = i[1, 0]
+        v_c = i[2, 0]
+        v_ab = v_a - v_b
+        v_bc = v_b - v_c
+        v_ca = v_c - v_a
+        i_ar.append(round(abs(i_a), 2))
+        i_br.append(round(abs(i_b), 2))
+        i_cr.append(round(abs(i_c), 2))
+        v_bcr.append(round(abs(v_bc), 2))
+        v_car.append(round(abs(v_ca), 2))
+        v_abr.append(round(abs(v_ab), 2))
+        ang_ia_vbc = angulo(i_a) - angulo(v_bc)
+        ang_ib_vca = angulo(i_b) - angulo(v_ca)
+        ang_ic_vab = angulo(i_c) - angulo(v_ab)
+        ang_ia_vbcr.append(round(abs(ang_ia_vbc), 2))
+        ang_ib_vcar.append(round(abs(ang_ib_vca), 2))
+        ang_ic_vabr.append(round(abs(ang_ic_vab), 2))
+    for i in vi_r_120:
+        v2 = i[1, 0]
+        v0 = i[2, 0]
+        i2 = i[4, 0]
+        i0 = i[5, 0]
+        ang_3i0_v0 = angulo(i0) - angulo(-v0)
+        ang_i2_v2 = angulo(i2) - angulo(-v2)
+        ang_3i0_v0r.append(round(abs(ang_3i0_v0), 2))
+        ang_i2_v2r.append(round(abs(ang_i2_v2), 2))
 
     # Graficos
-    plota_graficos(dist_falta, Ias, Iar, 'Ias', 'Iar', "Ia x comp", "Ia (A)", "Comprimento (km)")
-    plota_graficos(dist_falta, Vbcs, Vbcr, 'Vbcs', 'Vbcr', "Vbc x comp", "Vbc (V)", "Comprimento (km)")
-    plota_graficos(dist_falta, ang_Ia_Vbcs, ang_Ia_Vbcr, 'angulo s', 'angulo r', "Angulo IaxVbc x comp",
+    plota_graficos(dist_falta, i_as, i_ar, 'Ias', 'Iar', "Ia x comp", "Ia (A)", "Comprimento (km)")
+    plota_graficos(dist_falta, v_bcs, v_bcr, 'Vbcs', 'Vbcr', "Vbc x comp", "Vbc (V)", "Comprimento (km)")
+    plota_graficos(dist_falta, ang_ia_vbcs, ang_ia_vbcr, ANGULO_S, ANGULO_R, "Angulo IaxVbc x comp",
                    "Angulo IaxVbc (graus)", "Comprimento (km)")
-    plota_graficos(dist_falta, ang_3I0_V0s, ang_3I0_V0r, 'angulo s', 'angulo r', "Angulo 3I0xV0 x comp",
+    plota_graficos(dist_falta, ang_3i0_v0s, ang_3i0_v0r, ANGULO_S, ANGULO_R, "Angulo 3I0xV0 x comp",
                    "Angulo 3I0xV0 (graus)", "Comprimento (km)")
-    plota_graficos(dist_falta, ang_I2_V2s, ang_I2_V2r, 'angulo s', 'angulo r', "Angulo I2xV2 x comp",
+    plota_graficos(dist_falta, ang_i2_v2s, ang_i2_v2r, ANGULO_S, ANGULO_R, "Angulo I2xV2 x comp",
                    "Angulo I2xV2 (graus)", "Comprimento (km)")
 
 
-def Siemens_7SJ62(VI_S_120, VI_S_abc, VI_R_120, VI_R_abc, dist_falta):
-    Ias = []
-    Ibs = []
-    Ics = []
-    Vbcs = []
-    Vcas = []
-    Vabs = []
-    ang_Ia_Vbcs = []
-    ang_Ib_Vcas = []
-    ang_Ic_Vabs = []
-    ang_3I0_3V0s = []
-    ang_3I2_3V2s = []
-    for i in VI_S_abc:
-        Ia = i[3, 0]
-        Ib = i[4, 0]
-        Ic = i[5, 0]
-        Va = i[0, 0]
-        Vb = i[1, 0]
-        Vc = i[2, 0]
-        Vab = Va - Vb
-        Vbc = Vb - Vc
-        Vca = Vc - Va
-        Ias.append(round(abs(Ia), 2))
-        Ibs.append(round(abs(Ib), 2))
-        Ics.append(round(abs(Ic), 2))
-        Vbcs.append(round(abs(Vbc), 2))
-        Vcas.append(round(abs(Vca), 2))
-        Vabs.append(round(abs(Vab), 2))
-        ang_Ia_Vbc = angulo(Ia) - angulo(Vbc)
-        ang_Ib_Vca = angulo(Ib) - angulo(Vca)
-        ang_Ic_Vab = angulo(Ic) - angulo(Vab)
-        ang_Ia_Vbcs.append(round(abs(ang_Ia_Vbc), 2))
-        ang_Ib_Vcas.append(round(abs(ang_Ib_Vca), 2))
-        ang_Ic_Vabs.append(round(abs(ang_Ic_Vab), 2))
-    for i in VI_S_120:
-        V2 = i[1, 0]
-        V0 = i[2, 0]
-        I2 = i[4, 0]
-        I0 = i[5, 0]
-        ang_3I0_3V0 = angulo(-I0) - angulo(V0)
-        ang_3I2_3V2 = angulo(-I2) - angulo(V2)
-        ang_3I0_3V0s.append(round(abs(ang_3I0_3V0), 2))
-        ang_3I2_3V2s.append(round(abs(ang_3I2_3V2), 2))
+def Siemens_7SJ62(vi_s_120, vi_s_abc, vi_r_120, vi_r_abc, dist_falta):
+    i_as = []
+    i_bs = []
+    i_cs = []
+    v_bcs = []
+    v_cas = []
+    v_abs = []
+    ang_ia_vbcs = []
+    ang_ib_vcas = []
+    ang_ic_vabs = []
+    ang_3i0_3v0s = []
+    ang_3i2_3v2s = []
+    for i in vi_s_abc:
+        i_a = i[3, 0]
+        i_b = i[4, 0]
+        i_c = i[5, 0]
+        v_a = i[0, 0]
+        v_b = i[1, 0]
+        v_c = i[2, 0]
+        v_ab = v_a - v_b
+        v_bc = v_b - v_c
+        v_ca = v_c - v_a
+        i_as.append(round(abs(i_a), 2))
+        i_bs.append(round(abs(i_b), 2))
+        i_cs.append(round(abs(i_c), 2))
+        v_bcs.append(round(abs(v_bc), 2))
+        v_cas.append(round(abs(v_ca), 2))
+        v_abs.append(round(abs(v_ab), 2))
+        ang_ia_vbc = angulo(i_a) - angulo(v_bc)
+        ang_ib_vca = angulo(i_b) - angulo(v_ca)
+        ang_ic_vab = angulo(i_c) - angulo(v_ab)
+        ang_ia_vbcs.append(round(abs(ang_ia_vbc), 2))
+        ang_ib_vcas.append(round(abs(ang_ib_vca), 2))
+        ang_ic_vabs.append(round(abs(ang_ic_vab), 2))
+    for i in vi_s_120:
+        v_2 = i[1, 0]
+        v_0 = i[2, 0]
+        i_2 = i[4, 0]
+        i_0 = i[5, 0]
+        ang_3i0_3v0 = angulo(-i_0) - angulo(v_0)
+        ang_3i2_3v2 = angulo(-i_2) - angulo(v_2)
+        ang_3i0_3v0s.append(round(abs(ang_3i0_3v0), 2))
+        ang_3i2_3v2s.append(round(abs(ang_3i2_3v2), 2))
 
-    Iar = []
-    Ibr = []
-    Icr = []
-    Vbcr = []
-    Vcar = []
-    Vabr = []
-    ang_Ia_Vbcr = []
-    ang_Ib_Vcar = []
-    ang_Ic_Vabr = []
-    ang_3I0_3V0r = []
-    ang_3I2_3V2r = []
-    for i in VI_R_abc:
-        Ia = i[3, 0]
-        Ib = i[4, 0]
-        Ic = i[5, 0]
-        Va = i[0, 0]
-        Vb = i[1, 0]
-        Vc = i[2, 0]
-        Vab = Va - Vb
-        Vbc = Vb - Vc
-        Vca = Vc - Va
-        Iar.append(round(abs(Ia), 2))
-        Ibr.append(round(abs(Ib), 2))
-        Icr.append(round(abs(Ic), 2))
-        Vbcr.append(round(abs(Vbc), 2))
-        Vcar.append(round(abs(Vca), 2))
-        Vabr.append(round(abs(Vab), 2))
-        ang_Ia_Vbc = angulo(Ia) - angulo(Vbc)
-        ang_Ib_Vca = angulo(Ib) - angulo(Vca)
-        ang_Ic_Vab = angulo(Ic) - angulo(Vab)
-        ang_Ia_Vbcr.append(round(abs(ang_Ia_Vbc), 2))
-        ang_Ib_Vcar.append(round(abs(ang_Ib_Vca), 2))
-        ang_Ic_Vabr.append(round(abs(ang_Ic_Vab), 2))
-    for i in VI_R_120:
-        V2 = i[1, 0]
-        V0 = i[2, 0]
-        I2 = i[4, 0]
-        I0 = i[5, 0]
-        ang_3I0_3V0 = angulo(-I0) - angulo(V0)
-        ang_3I2_3V2 = angulo(-I2) - angulo(V2)
-        ang_3I0_3V0r.append(round(abs(ang_3I0_3V0), 2))
-        ang_3I2_3V2r.append(round(abs(ang_3I2_3V2), 2))
+    i_ar = []
+    i_br = []
+    i_cr = []
+    v_bcr = []
+    v_car = []
+    v_abr = []
+    ang_ia_vbcr = []
+    ang_ib_vcar = []
+    ang_ic_vabr = []
+    ang_3i0_3v0r = []
+    ang_3i2_3v2r = []
+    for i in vi_r_abc:
+        i_a = i[3, 0]
+        i_b = i[4, 0]
+        i_c = i[5, 0]
+        v_a = i[0, 0]
+        v_b = i[1, 0]
+        v_c = i[2, 0]
+        v_ab = v_a - v_b
+        v_bc = v_b - v_c
+        v_ca = v_c - v_a
+        i_ar.append(round(abs(i_a), 2))
+        i_br.append(round(abs(i_b), 2))
+        i_cr.append(round(abs(i_c), 2))
+        v_bcr.append(round(abs(v_bc), 2))
+        v_car.append(round(abs(v_ca), 2))
+        v_abr.append(round(abs(v_ab), 2))
+        ang_ia_vbc = angulo(i_a) - angulo(v_bc)
+        ang_ib_vca = angulo(i_b) - angulo(v_ca)
+        ang_ic_vab = angulo(i_c) - angulo(v_ab)
+        ang_ia_vbcr.append(round(abs(ang_ia_vbc), 2))
+        ang_ib_vcar.append(round(abs(ang_ib_vca), 2))
+        ang_ic_vabr.append(round(abs(ang_ic_vab), 2))
+    for i in vi_r_120:
+        v_2 = i[1, 0]
+        v_0 = i[2, 0]
+        i_2 = i[4, 0]
+        i_0 = i[5, 0]
+        ang_3i0_3v0 = angulo(-i_0) - angulo(v_0)
+        ang_3i2_3v2 = angulo(-i_2) - angulo(v_2)
+        ang_3i0_3v0r.append(round(abs(ang_3i0_3v0), 2))
+        ang_3i2_3v2r.append(round(abs(ang_3i2_3v2), 2))
 
     # Graficos
-    plota_graficos(dist_falta, Ias, Iar, 'Ias', 'Iar', "Ia x comp", "Ia (A)", "Comprimento (km)")
-    plota_graficos(dist_falta, Vbcs, Vbcr, 'Vbcs', 'Vbcr', "Vbc x comp", "Vbc (V)", "Comprimento (km)")
-    plota_graficos(dist_falta, ang_Ia_Vbcs, ang_Ia_Vbcr, 'angulo s', 'angulo r', "Angulo IaxVbc x comp",
-                   "Angulo IaxVbc (graus)", "Comprimento (km)")
-    plota_graficos(dist_falta, ang_3I0_3V0s, ang_3I0_3V0r, 'angulo s', 'angulo r', "Angulo 3I0x3V0 x comp",
-                   "Angulo 3I0x3V0 (graus)", "Comprimento (km)")
-    plota_graficos(dist_falta, ang_3I2_3V2s, ang_3I2_3V2r, 'angulo s', 'angulo r', "Angulo 3I2x3V2 x comp",
-                   "Angulo 3I2x3V2 (graus)", "Comprimento (km)")
+    plota_graficos(dist_falta, i_as, i_ar, 'i_as', 'Iar', "Ia x comp", "Ia (A)", COMPRIMENTO)
+    plota_graficos(dist_falta, v_bcs, v_bcr, 'Vbcs', 'Vbcr', "Vbc x comp", "Vbc (V)", COMPRIMENTO)
+    plota_graficos(dist_falta, ang_ia_vbcs, ang_ia_vbcr, ANGULO_S, ANGULO_R, "Angulo IaxVbc x comp",
+                   "Angulo IaxVbc (graus)", COMPRIMENTO)
+    plota_graficos(dist_falta, ang_3i0_3v0s, ang_3i0_3v0r, ANGULO_S, ANGULO_R, "Angulo 3I0x3V0 x comp",
+                   "Angulo 3I0x3V0 (graus)", COMPRIMENTO)
+    plota_graficos(dist_falta, ang_3i2_3v2s, ang_3i2_3v2r, ANGULO_S, ANGULO_R, "Angulo 3I2x3V2 x comp",
+                   "Angulo 3I2x3V2 (graus)", COMPRIMENTO)

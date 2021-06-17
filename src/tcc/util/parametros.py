@@ -1,13 +1,16 @@
 # equivalente.py
 
 """
-Classe que deve representar as linahs de transmissão
+Classe que deve representar as linhas de transmissão
 """
+
+from src.tcc.enums.tpFalta import TpFalta
+from src.tcc.enums.tpRele import TpRele
 
 
 class Parametros:
 
-    def __init__(self, tf, rele, rf=0.01, delta_m=0.01):
+    def __init__(self, tf: TpFalta, rele: TpRele, rf=0.01, delta_m=0.01):
         self.tf = tf
         self.rele = rele
 
@@ -17,11 +20,11 @@ class Parametros:
         else:
             self.delta = delta_m
 
-        # validação para que delta_m não seja zero
+        # validação para que a resistencia não seja zero
         if rf == 0:
             self.rf = 0.01
         else:
-            self.rf = delta_m
+            self.rf = rf
 
     @property
     def tipo_falta(self):

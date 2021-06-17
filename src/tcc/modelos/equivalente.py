@@ -1,22 +1,24 @@
 # equivalente.py
 
 from src.tcc.calculos import faltas as flt
+from src.tcc.modelos.elemento import Elemento
 
 """
 Classe que deve representar os equivalentes de thevenin
 """
 
 
-class Equivalente:
+class Equivalente(Elemento):
 
-    def __init__(self, v_mag, z_1, z_0):
+    def __init__(self, v_mag: float, v_ang: float, z_1: complex, z_0: complex, nome: str):
         self.v_mag = v_mag
-        self.v_ang = 0.0
+        self.v_ang = v_ang
         self.i_mag = 0.0
         self.i_ang = 0.0
         self.z_1 = z_1
         self.z_0 = z_0
         self.monta_matrizes()
+        self.nome = nome
 
     def monta_matrizes(self):
         self.v_abc = flt.valor_abc(self.v_mag / 3 ** (1 / 2), self.v_ang)
