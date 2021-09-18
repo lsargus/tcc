@@ -103,6 +103,13 @@ class Matriz(numpy.ndarray):
 # Métodos estáticos
 # ----------------------------------------------------------------------------------------------------------------------
 
+        nova_m = matriz
+        for x in range(0, len(matriz[0])):
+            for y in range(0, len(x)):
+                if matriz[x][y] < 1E-9:
+                    nova_m[x][y] = 0
+        return nova_m
+
     @staticmethod
     def concatena_horizontal(*args):
         if isinstance(args[0], Matriz):

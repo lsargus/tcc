@@ -29,35 +29,45 @@ from src.tcc.util.matriz import Matriz
 from src.tcc.util.parametros import Parametros as Param
 
 """
-- Os valores de tensao e corrente podem ser em valores primarios ou secundarios
+- Os valores de tensão e corrente podem ser em valores primários ou secundários
 - Os valores podem ser na unidade desejada, V, kV, pu, A, kA
-- O usuario deve analisar a resposta baseado no dado de entrada
-- Sempre utilize tensoes de linha, independentemente de estarem em valores
-primarios ou secundarios
-- Os angulos sao em graus
+- O usuário deve analisar a resposta baseado no dado de entrada
+- Sempre utilize tensões de linha, independentemente de estarem em valores
+primários ou secundários
+- Os ângulos sao em graus
 - As impedancias devem ser inseridas na forma retangular R + jX
 """
-
+DEC = 12
 # Entrada de dados do sistema equivalente S
-equiv_s = Equivalente(25000.0, 0.0, 0.0125 + 1.251875j,
-                      0.0001875 + 0.01875j, "Equivalente S")
+equiv_s = Equivalente(230000.0, 0.0, 00.1058 + 10.58j,
+                      0.1587 + 15.87j, "Equivalente S")
 
 # Entrada de dados do sistema equivalente R
-equiv_r = Equivalente(13800.0, 0.0, 0.0038088 + 0.38088, 0.0018739 + 0.18739j, "Equivalente R")
+equiv_r = Equivalente(230000.0, 0.0, 0.7935 + 105.8j, 0.2645 + 79.35j, "Equivalente R")
 
 # Entrada de dados da Linha considerando o modelo pi
 # Comprimento da linha em km
 # Z da linha como R+jX em ohm/km
 # Y da linha como 0+jB em   S/km
-linha1 = Linha(400.0, 0.01 + 0.02j, 0.02 + 0.04j, 0.00 + 0.0000002j, 0.00 + 0.0000001j, "Linha 1")
+linha1 = Linha(33.333*3, (0.2645 + 0.458114j)*3, (0.7935 + 1.374342j)*3, 0 + 0.0000000001j, 0.00 + 0.0000001j, "Linha 1")
 linha1.sofreu_falta = True
+linha1.analisa_falta = True
 
-linha2 = Linha(400.0, 0.01 + 0.02j, 0.02 + 0.04j, 0.00 + 0.0000002j, 0.00 + 0.0000001j, "Linha 2")
+linha2 = Linha(33.333, 0.2645 + 0.458114j, 0.7935 + 1.374342j, 0 + 0.0000000001j, 0.00 + 0.0000001j,  "Linha 2")
 linha2.analisa_falta = True
 
-linha3 = Linha(400.0, 0.01 + 0.02j, 0.02 + 0.04j, 0.00 + 0.0000002j, 0.00 + 0.0000001j, "Linha 3")
+linha3 = Linha(33.333, 0.2645 + 0.458114j, 0.7935 + 1.374342j, 0 + 0.0000000001j, 0.00 + 0.0000001j,  "Linha 3")
 linha3.analisa_falta = True
 
+linha4 = Linha(33.333, 0.2645 + 0.458114j, 0.7935 + 1.374342j, 0 + 0.0000000001j, 0.00 + 0.0000001j,  "Linha 4")
+linha4.analisa_falta = True
+
+# teste linhas
+lt = np.around(linha2.z_abc*linha3.z_abc*linha4.z_abc,decimals=8)
+l1 = np.around(linha1.z_abc,decimals=8)
+
+lt_r = lt[:3,3:]
+l1_r = l1[:3,3:]
 # cria o transformador
 z_g1 = 0 * np.ones((3, 3))
 z_g2 = 0 * np.ones((3, 3))
@@ -72,7 +82,7 @@ transformador2 = Transformador(TpTransformador.Dy1, 1 + 0j, 2 + 0j, 10, z_g1)
 # rele = 1-'SEL-311', 2-'GE-D90Plus', 3-'Siemens-7SJ62'
 # Porcentagem que cada ponto de falta e aplicado 0.01 = 1%
 
-param_sis = Param(TpFalta.MONO, TpRele.GE_D90PLUS, 0.0001, 0.01)
+param_sis = Param(TpFalta.MONO, TpRele.GE_D90PLUS, 0.001, 0.01)
 
 # Montagem da matriz da resistencia de falta
 
@@ -82,7 +92,7 @@ elemento_falta = Falta(param_sis.tipo_falta, param_sis.resistencia_falta)
 
 # Inicio do programa
 
-lista_elementos = [equiv_s, transformador1, equiv_r]
+lista_elementos = [equiv_s, linha1, linha2, linha3, equiv_r]
 
 # Aplicacao da falta e leitura pelos reles
 VI_abc_rele_s = []
@@ -122,10 +132,10 @@ for n in range(0, len(lista_elementos)):
 
         lado_dir = np.identity(6)
 
-        # laco para somar a impedancias do lado esquerdo
+        # laco para somar a impedancias do lado direito
         for i in range(n + 1, len(lista_elementos)):
             elemento2 = lista_elementos[i]
-            lado_dir = lado_dir * elemento2.z_120
+            lado_dir = np.around(lado_dir * elemento2.z_abc, decimals=DEC)
 
         comprimento_acumulado = 0
         if len(dist_falta) != 0:
@@ -166,8 +176,8 @@ for n in range(0, len(lista_elementos)):
             dist_falta.append(1)
 
     # soma impedancia dos elementos ao lado direito,
-    # para o caso de varios elementos evitar refazer a soma
-    lado_esq = lado_esq * elemento.z_120
+    # para o caso de vários elementos evitar refazer a soma
+    lado_esq = np.around(lado_esq * elemento.z_abc,decimals=DEC)
 
     # Caso não seja um equivalente somo para calcular o Z total
     # if not isinstance(elemento, Equivalente):

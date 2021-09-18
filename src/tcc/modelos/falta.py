@@ -18,6 +18,7 @@ class Falta:
 
     def __init__(self, tipo: TpFalta, rf: float):
         """tipo de falta (1-mono, 2-bi, 3-biterra, 4-tri, 5-triterra, default: mono)"""
+        # todo: arrumar bifasica para usar B C
         if tipo == TpFalta.BI:
             # matriz de falta bifasica
             z_falta = Matriz([[1.0 / rf, -1.0 / rf, 0.00000],

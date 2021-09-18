@@ -1,0 +1,20 @@
+<div class="container">
+    <div class="row janela-sistema">
+        <div class="col-1 col-md-2 lista-elementos">
+            <div class="row">
+                {% include 'partials/projeto_fonte.html' %}
+            </div>
+            <div class="row">
+                {% include 'partials/projeto_barra.html' %}
+            </div>
+            <div class="row">
+                {% include 'partials/projeto_linha.html' %}
+            </div>
+            <div class="row">
+                {% include 'partials/projeto_transformador.html' %}
+            </div>
+        </div>
+        <div class="col-11 col-md-10 sistema" ondrop="drop_handler(event);" ondragover="dragover_handler(event);"></div>
+
+    </div>
+</div>

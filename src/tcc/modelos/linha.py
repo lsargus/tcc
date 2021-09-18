@@ -15,6 +15,7 @@ class Linha(Elemento):
         self.y_1 = y_1
         self.y_0 = y_0
         self.parametros_linha_totais()
+        self.z_abc = flt.z_120abc(self.z_120, '120')
         self.nome = nome
 
     def parametros_linha_totais(self):

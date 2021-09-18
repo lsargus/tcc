@@ -1,0 +1,72 @@
+{% load static %}
+
+<div class="sistema_elemento" draggable="true" id="linha_sist" ondragstart="dragstart_handler(event);"
+     ondragend="dragend_handler(event);">
+    <img src="{% static 'img/sistema-linha.png' %}" alt="Representação equivalente" width="105"
+         height="04">
+</div>
+
+<!-- Um dialog simples contendo um form -->
+<div id="dialogLinha" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">Preencha os dados da Linha:</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col col-md-4">
+                                <label for="z1Barra">Impedancia (Z1)</label>
+                            </div>
+                            <div class="col col-md-2">
+                                <input id="z1Barra" type="number" class="form-control"
+                                       placeholder="Impedancia positiva">
+                            </div>
+
+                            <div class="col col-md-4">
+                                <label for="z0Barra">Impedancia (Z0)</label>
+                            </div>
+                            <div class="col col-md-2">
+                                <input id="z0Barra" type="number" class="form-control"
+                                       placeholder="Impedancia neutro">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col col-md-4">
+                                <label for="y1Barra">Admitância (Y1)</label>
+                            </div>
+                            <div class="col col-md-2">
+                                <input id="y1Barra" type="number" class="form-control"
+                                       placeholder="Admitância positiva">
+                            </div>
+
+                            <div class="col col-md-4">
+                                <label for="y0Barra">Admitância (Y0)</label>
+                            </div>
+                            <div class="col col-md-2">
+                                <input id="y0Barra" type="number" class="form-control"
+                                       placeholder="Admitância neutro">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col col-md-4">
+                                <label for="compBarra">Comprimento da linha (Km)</label>
+                            </div>
+                            <div class="col col-md-2">
+                                <input id="compBarra" type="number" class="form-control" placeholder="Comprimento">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel" type="reset">Cancel</button>
+                <button id="confirLinha" type="submit">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
